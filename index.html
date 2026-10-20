@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Faiz & Kazanç Hesaplayıcı | 30 ve 60 Günlük Projeksiyon</title>
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20261020_05" />
   <script>
-    tailwind.config = {
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
@@ -36,7 +40,7 @@
           }
         }
       }
-    }
+    };
   </script>
 </head>
 <body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-dark-950">
@@ -68,7 +72,7 @@
         </div>
 
         <!-- Reset Button -->
-        <button id="resetAllBtn" title="Değerleri ve Çerezleri Sıfırla" class="px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1">
+        <button id="resetAllBtn" type="button" title="Değerleri ve Çerezleri Sıfırla" class="px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -196,11 +200,11 @@
 
         <!-- Quick Amount Chips -->
         <div class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 mt-2.5">
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center" data-amt="10000">10K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center" data-amt="50000">50K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center" data-amt="100000">100K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center" data-amt="250000">250K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center col-span-4 sm:col-span-1" data-amt="500000">500K</button>
+          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="10000">10K</button>
+          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="50000">50K</button>
+          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="100000">100K</button>
+          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="250000">250K</button>
+          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center col-span-4 sm:col-span-1 cursor-pointer" data-amt="500000">500K</button>
         </div>
       </div>
 
@@ -209,14 +213,14 @@
         <button
           type="button"
           id="modeCompoundBtn"
-          class="flex-1 py-2.5 rounded-lg text-center transition-all bg-brand-600 text-white shadow font-bold"
+          class="flex-1 py-2.5 rounded-lg text-center transition-all bg-brand-600 text-white shadow font-bold cursor-pointer"
         >
           Bileşik Faiz (Katlanarak Büyür)
         </button>
         <button
           type="button"
           id="modeSimpleBtn"
-          class="flex-1 py-2.5 rounded-lg text-center transition-all text-slate-400 hover:text-white"
+          class="flex-1 py-2.5 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer"
         >
           Basit Faiz (Sabit Günlük)
         </button>
@@ -329,7 +333,7 @@
   </main>
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-xs z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-brand-500 text-dark-950 font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm">
+  <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-xs z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-brand-500 text-dark-950 font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm pointer-events-none">
     <svg class="w-5 h-5 text-dark-950 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
     </svg>
@@ -340,6 +344,433 @@
     <p>InterestCalc &copy; 2026 • Frontend Only • Çerezlerde Saklanır</p>
   </footer>
 
-  <script src="app.js"></script>
+  <!-- Direct Inlined Execution to Guarantee 0 CDN/Browser Cache Desynchronization -->
+  <script>
+    /**
+     * InterestCalc - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
+     */
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'interest_calc_v3_pref';
+
+      const state = {
+        refPrincipal: 10000,
+        refDailyInterest: 150,
+        activeDailyRate: 1.5,
+        currentPrincipal: 10000,
+        mode: 'compound',
+        currency: '₺'
+      };
+
+      function parseNumber(val) {
+        if (typeof val === 'number') return isNaN(val) ? 0 : val;
+        if (!val) return 0;
+        let str = String(val).trim().replace(/\s+/g, '');
+        if (str.includes('.') && str.includes(',')) {
+          str = str.replace(/\./g, '').replace(',', '.');
+        } else if (str.includes(',')) {
+          str = str.replace(',', '.');
+        } else if (str.includes('.')) {
+          const parts = str.split('.');
+          if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
+            str = parts[0] + parts[1];
+          }
+        }
+        const num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+      }
+
+      function setCookie(name, value, days = 365) {
+        try {
+          const d = new Date();
+          d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+          document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+        } catch (e) {}
+      }
+
+      function getCookie(name) {
+        try {
+          const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+          return v ? decodeURIComponent(v[2]) : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function eraseCookie(name) {
+        try {
+          document.cookie = name + '=;Max-Age=-99999999;path=/;SameSite=Lax';
+        } catch (e) {}
+      }
+
+      let saveTimer = null;
+      function persistState() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          const payload = JSON.stringify(state);
+          setCookie(STORAGE_KEY, payload, 365);
+          try {
+            localStorage.setItem(STORAGE_KEY, payload);
+          } catch (e) {}
+        }, 200);
+      }
+
+      function formatMoney(amount, showDecimals = true) {
+        if (isNaN(amount) || amount === null) return state.currency + '0';
+        const decimals = showDecimals ? 2 : 0;
+        return state.currency + Number(amount).toLocaleString('tr-TR', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        });
+      }
+
+      function formatRate(rate) {
+        if (isNaN(rate) || rate === null) return '0.00';
+        return Number(rate).toFixed(4).replace(/\.?0+$/, '') || '0';
+      }
+
+      function initApp() {
+        const elements = {
+          refPrincipalInput: document.getElementById('refPrincipalInput'),
+          refDailyInterestInput: document.getElementById('refDailyInterestInput'),
+          calcRatePreview: document.getElementById('calcRatePreview'),
+          saveRateBtn: document.getElementById('saveRateBtn'),
+          displayActiveRate: document.getElementById('displayActiveRate'),
+          rateInStep2Label: document.getElementById('rateInStep2Label'),
+          currentPrincipalInput: document.getElementById('currentPrincipalInput'),
+          currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
+          quickChips: document.querySelectorAll('.quick-chip'),
+          modeCompoundBtn: document.getElementById('modeCompoundBtn'),
+          modeSimpleBtn: document.getElementById('modeSimpleBtn'),
+          dailyProfitResult: document.getElementById('dailyProfitResult'),
+          profit30: document.getElementById('profit30'),
+          balance30: document.getElementById('balance30'),
+          roi30: document.getElementById('roi30'),
+          profit60: document.getElementById('profit60'),
+          balance60: document.getElementById('balance60'),
+          roi60: document.getElementById('roi60'),
+          toggleTableBtn: document.getElementById('toggleTableBtn'),
+          tableContainer: document.getElementById('tableContainer'),
+          tableChevron: document.getElementById('tableChevron'),
+          simpleTableBody: document.getElementById('simpleTableBody'),
+          currencyButtons: document.querySelectorAll('.currency-btn'),
+          currencySymbols: document.querySelectorAll('.currency-symbol'),
+          resetAllBtn: document.getElementById('resetAllBtn'),
+          toast: document.getElementById('toast'),
+          toastMsg: document.getElementById('toastMsg')
+        };
+
+        if (!elements.refPrincipalInput || !elements.currentPrincipalInput) return;
+
+        function showToast(msg) {
+          if (!elements.toast || !elements.toastMsg) return;
+          elements.toastMsg.textContent = msg;
+          elements.toast.classList.remove('translate-y-24', 'opacity-0');
+          elements.toast.classList.add('translate-y-0', 'opacity-100');
+          setTimeout(() => {
+            elements.toast.classList.add('translate-y-24', 'opacity-0');
+            elements.toast.classList.remove('translate-y-0', 'opacity-100');
+          }, 2600);
+        }
+
+        function updateRatePreview() {
+          const p = parseNumber(elements.refPrincipalInput.value);
+          const r = parseNumber(elements.refDailyInterestInput.value);
+          if (p > 0) {
+            const calcRate = (r / p) * 100;
+            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calcRate.toFixed(4);
+          } else {
+            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%0.0000';
+          }
+        }
+
+        function updateModeUI() {
+          if (!elements.modeCompoundBtn || !elements.modeSimpleBtn) return;
+          if (state.mode === 'compound') {
+            elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+            elements.modeCompoundBtn.classList.remove('text-slate-400');
+            elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+            elements.modeSimpleBtn.classList.add('text-slate-400');
+          } else {
+            elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+            elements.modeSimpleBtn.classList.remove('text-slate-400');
+            elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+            elements.modeCompoundBtn.classList.add('text-slate-400');
+          }
+        }
+
+        function calculate() {
+          const principal = parseNumber(elements.currentPrincipalInput.value);
+          state.currentPrincipal = principal;
+
+          let rate = state.activeDailyRate;
+          if (isNaN(rate) || rate <= 0) {
+            rate = 1.5;
+            state.activeDailyRate = 1.5;
+          }
+
+          const dailyRateFrac = rate / 100;
+
+          if (elements.currentPrincipalFormatted) {
+            elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
+          }
+
+          const oneDayProfit = principal * dailyRateFrac;
+          if (elements.dailyProfitResult) {
+            elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
+          }
+
+          let currentBalance = principal;
+          let cumulativeProfit = 0;
+          const breakdown = [];
+
+          for (let day = 1; day <= 60; day++) {
+            let dayProfit = 0;
+            if (state.mode === 'compound') {
+              dayProfit = currentBalance * dailyRateFrac;
+              currentBalance += dayProfit;
+              cumulativeProfit = currentBalance - principal;
+            } else {
+              dayProfit = principal * dailyRateFrac;
+              cumulativeProfit += dayProfit;
+              currentBalance = principal + cumulativeProfit;
+            }
+
+            breakdown.push({
+              day,
+              dayProfit,
+              cumulativeProfit,
+              endBalance: currentBalance,
+              roi: principal > 0 ? (cumulativeProfit / principal) * 100 : 0
+            });
+          }
+
+          const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+          if (elements.profit30) elements.profit30.textContent = '+' + formatMoney(res30.cumulativeProfit);
+          if (elements.balance30) elements.balance30.textContent = formatMoney(res30.endBalance);
+          if (elements.roi30) elements.roi30.textContent = '+' + res30.roi.toFixed(1) + '%';
+
+          const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+          if (elements.profit60) elements.profit60.textContent = '+' + formatMoney(res60.cumulativeProfit);
+          if (elements.balance60) elements.balance60.textContent = formatMoney(res60.endBalance);
+          if (elements.roi60) elements.roi60.textContent = '+' + res60.roi.toFixed(1) + '%';
+
+          renderTable(breakdown);
+          persistState();
+        }
+
+        function renderTable(breakdown) {
+          if (!elements.simpleTableBody) return;
+          let rowsHtml = '';
+          for (let i = 0; i < breakdown.length; i++) {
+            const item = breakdown[i];
+            let rowClass = 'hover:bg-dark-850 transition-colors';
+            let badge = '';
+
+            if (item.day === 30) {
+              rowClass += ' highlight-row-30';
+              badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
+            } else if (item.day === 60) {
+              rowClass += ' highlight-row-60';
+              badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
+            }
+
+            rowsHtml += '<tr class="' + rowClass + '">' +
+              '<td class="py-2 px-3 font-bold text-white whitespace-nowrap">' + item.day + '. Gün' + badge + '</td>' +
+              '<td class="py-2 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(item.dayProfit) + '</td>' +
+              '<td class="py-2 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(item.cumulativeProfit) + '</td>' +
+              '<td class="py-2 px-3 text-right text-white font-bold">' + formatMoney(item.endBalance) + '</td>' +
+              '</tr>';
+          }
+          elements.simpleTableBody.innerHTML = rowsHtml;
+        }
+
+        function loadPersistedState() {
+          let raw = getCookie(STORAGE_KEY);
+          if (!raw) {
+            try {
+              raw = localStorage.getItem(STORAGE_KEY);
+            } catch (e) {}
+          }
+          if (!raw) return false;
+
+          try {
+            const data = JSON.parse(raw);
+            if (!data || typeof data !== 'object') return false;
+
+            if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
+            if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
+            if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
+              state.activeDailyRate = Number(data.activeDailyRate);
+            }
+            if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
+              state.currentPrincipal = Number(data.currentPrincipal);
+            }
+            if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
+            if (data.currency) state.currency = data.currency;
+
+            elements.refPrincipalInput.value = state.refPrincipal;
+            elements.refDailyInterestInput.value = state.refDailyInterest;
+            elements.currentPrincipalInput.value = state.currentPrincipal;
+
+            const rateStr = formatRate(state.activeDailyRate);
+            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
+            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+
+            elements.currencyButtons.forEach(b => {
+              if (b.dataset.currency === state.currency) {
+                b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+                b.classList.remove('text-slate-400');
+              } else {
+                b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+                b.classList.add('text-slate-400');
+              }
+            });
+            elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+
+            updateModeUI();
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+
+        ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
+          elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
+          elements.refDailyInterestInput.addEventListener(evtName, updateRatePreview);
+          elements.currentPrincipalInput.addEventListener(evtName, calculate);
+        });
+
+        if (elements.saveRateBtn) {
+          elements.saveRateBtn.addEventListener('click', () => {
+            const p = parseNumber(elements.refPrincipalInput.value);
+            const r = parseNumber(elements.refDailyInterestInput.value);
+
+            if (p <= 0) {
+              showToast('Lütfen geçerli bir anapara girin.');
+              elements.refPrincipalInput.focus();
+              return;
+            }
+
+            const calculatedRate = (r / p) * 100;
+            state.refPrincipal = p;
+            state.refDailyInterest = r;
+            state.activeDailyRate = calculatedRate;
+
+            const rateFormatted = formatRate(calculatedRate);
+            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
+            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
+            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calculatedRate.toFixed(4);
+
+            elements.currentPrincipalInput.value = p;
+            state.currentPrincipal = p;
+
+            calculate();
+            showToast('✓ Faiz oranı %' + rateFormatted + ' olarak kaydedildi!');
+          });
+        }
+
+        elements.quickChips.forEach(chip => {
+          chip.addEventListener('click', () => {
+            const amt = parseFloat(chip.dataset.amt);
+            elements.currentPrincipalInput.value = amt;
+            calculate();
+          });
+        });
+
+        if (elements.modeCompoundBtn) {
+          elements.modeCompoundBtn.addEventListener('click', () => {
+            state.mode = 'compound';
+            updateModeUI();
+            calculate();
+          });
+        }
+
+        if (elements.modeSimpleBtn) {
+          elements.modeSimpleBtn.addEventListener('click', () => {
+            state.mode = 'simple';
+            updateModeUI();
+            calculate();
+          });
+        }
+
+        if (elements.toggleTableBtn && elements.tableContainer) {
+          elements.toggleTableBtn.addEventListener('click', () => {
+            const isHidden = elements.tableContainer.classList.toggle('hidden');
+            if (elements.tableChevron) {
+              elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+          });
+        }
+
+        elements.currencyButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            elements.currencyButtons.forEach(b => {
+              b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+              b.classList.add('text-slate-400');
+            });
+            btn.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+            btn.classList.remove('text-slate-400');
+
+            state.currency = btn.dataset.currency;
+            elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+            calculate();
+          });
+        });
+
+        if (elements.resetAllBtn) {
+          elements.resetAllBtn.addEventListener('click', () => {
+            eraseCookie(STORAGE_KEY);
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {}
+
+            state.refPrincipal = 10000;
+            state.refDailyInterest = 150;
+            state.activeDailyRate = 1.5;
+            state.currentPrincipal = 10000;
+            state.mode = 'compound';
+            state.currency = '₺';
+
+            elements.refPrincipalInput.value = 10000;
+            elements.refDailyInterestInput.value = 150;
+            elements.currentPrincipalInput.value = 10000;
+
+            const rateStr = formatRate(state.activeDailyRate);
+            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
+            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+
+            updateRatePreview();
+            updateModeUI();
+
+            elements.currencyButtons.forEach((b, idx) => {
+              if (idx === 0) {
+                b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+                b.classList.remove('text-slate-400');
+              } else {
+                b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+                b.classList.add('text-slate-400');
+              }
+            });
+            elements.currencySymbols.forEach(s => (s.textContent = '₺'));
+
+            calculate();
+            showToast('Tüm değerler ve çerezler sıfırlandı.');
+          });
+        }
+
+        loadPersistedState();
+        updateRatePreview();
+        calculate();
+      }
+
+      if (document.getElementById('refPrincipalInput')) {
+        initApp();
+      } else {
+        document.addEventListener('DOMContentLoaded', initApp);
+      }
+    })();
+  </script>
 </body>
 </html>

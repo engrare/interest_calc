@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'interest_calc_v2_pref';
+  const STORAGE_KEY = 'interest_calc_v3_pref';
 
   // --- APPLICATION STATE ---
   const state = {
@@ -20,48 +20,6 @@
     currency: '₺'
   };
 
-  // --- DOM ELEMENTS ---
-  const elements = {
-    // Step 1: Rate Setup
-    refPrincipalInput: document.getElementById('refPrincipalInput'),
-    refDailyInterestInput: document.getElementById('refDailyInterestInput'),
-    calcRatePreview: document.getElementById('calcRatePreview'),
-    saveRateBtn: document.getElementById('saveRateBtn'),
-    displayActiveRate: document.getElementById('displayActiveRate'),
-
-    // Step 2: Current Principal & Calculation
-    rateInStep2Label: document.getElementById('rateInStep2Label'),
-    currentPrincipalInput: document.getElementById('currentPrincipalInput'),
-    currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
-    quickChips: document.querySelectorAll('.quick-chip'),
-    modeCompoundBtn: document.getElementById('modeCompoundBtn'),
-    modeSimpleBtn: document.getElementById('modeSimpleBtn'),
-    dailyProfitResult: document.getElementById('dailyProfitResult'),
-
-    // Step 2: 30 & 60 Days Output
-    profit30: document.getElementById('profit30'),
-    balance30: document.getElementById('balance30'),
-    roi30: document.getElementById('roi30'),
-    profit60: document.getElementById('profit60'),
-    balance60: document.getElementById('balance60'),
-    roi60: document.getElementById('roi60'),
-
-    // Table
-    toggleTableBtn: document.getElementById('toggleTableBtn'),
-    tableContainer: document.getElementById('tableContainer'),
-    tableChevron: document.getElementById('tableChevron'),
-    simpleTableBody: document.getElementById('simpleTableBody'),
-
-    // Header & Currency & Toast
-    currencyButtons: document.querySelectorAll('.currency-btn'),
-    currencySymbols: document.querySelectorAll('.currency-symbol'),
-    resetAllBtn: document.getElementById('resetAllBtn'),
-    toast: document.getElementById('toast'),
-    toastMsg: document.getElementById('toastMsg')
-  };
-
-  let saveTimer = null;
-
   // --- SMART NUMBER PARSER (Handles Turkish comma & thousands dot) ---
   function parseNumber(val) {
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -72,10 +30,8 @@
     if (str.includes('.') && str.includes(',')) {
       str = str.replace(/\./g, '').replace(',', '.');
     } else if (str.includes(',')) {
-      // 150,5 -> 150.5
       str = str.replace(',', '.');
     } else if (str.includes('.')) {
-      // 10.000 -> 10000 if 3 digits follow and not a small decimal like 1.5
       const parts = str.split('.');
       if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
         str = parts[0] + parts[1];
@@ -109,6 +65,7 @@
     } catch (e) {}
   }
 
+  let saveTimer = null;
   function persistState() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
@@ -118,58 +75,6 @@
         localStorage.setItem(STORAGE_KEY, payload);
       } catch (e) {}
     }, 200);
-  }
-
-  function loadPersistedState() {
-    let raw = getCookie(STORAGE_KEY);
-    if (!raw) {
-      try {
-        raw = localStorage.getItem(STORAGE_KEY);
-      } catch (e) {}
-    }
-    if (!raw) return false;
-
-    try {
-      const data = JSON.parse(raw);
-      if (!data || typeof data !== 'object') return false;
-
-      if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
-      if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
-      if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
-        state.activeDailyRate = Number(data.activeDailyRate);
-      }
-      if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
-        state.currentPrincipal = Number(data.currentPrincipal);
-      }
-      if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
-      if (data.currency) state.currency = data.currency;
-
-      // Populate input elements
-      elements.refPrincipalInput.value = state.refPrincipal;
-      elements.refDailyInterestInput.value = state.refDailyInterest;
-      elements.currentPrincipalInput.value = state.currentPrincipal;
-      
-      const rateStr = formatRate(state.activeDailyRate);
-      elements.displayActiveRate.textContent = rateStr;
-      elements.rateInStep2Label.textContent = rateStr;
-
-      // Currency UI
-      elements.currencyButtons.forEach(b => {
-        if (b.dataset.currency === state.currency) {
-          b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
-          b.classList.remove('text-slate-400');
-        } else {
-          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
-          b.classList.add('text-slate-400');
-        }
-      });
-      elements.currencySymbols.forEach(s => (s.textContent = state.currency));
-
-      updateModeUI();
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   // --- FORMATTERS ---
@@ -187,182 +92,263 @@
     return Number(rate).toFixed(4).replace(/\.?0+$/, '') || '0';
   }
 
-  function showToast(msg) {
-    elements.toastMsg.textContent = msg;
-    elements.toast.classList.remove('translate-y-24', 'opacity-0');
-    elements.toast.classList.add('translate-y-0', 'opacity-100');
-    setTimeout(() => {
-      elements.toast.classList.add('translate-y-24', 'opacity-0');
-      elements.toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2600);
-  }
+  function initApp() {
+    // --- DOM ELEMENTS ---
+    const elements = {
+      // Step 1: Rate Setup
+      refPrincipalInput: document.getElementById('refPrincipalInput'),
+      refDailyInterestInput: document.getElementById('refDailyInterestInput'),
+      calcRatePreview: document.getElementById('calcRatePreview'),
+      saveRateBtn: document.getElementById('saveRateBtn'),
+      displayActiveRate: document.getElementById('displayActiveRate'),
 
-  // --- STEP 1: RATE PREVIEW ---
-  function updateRatePreview() {
-    const p = parseNumber(elements.refPrincipalInput.value);
-    const r = parseNumber(elements.refDailyInterestInput.value);
-    if (p > 0) {
-      const calcRate = (r / p) * 100;
-      elements.calcRatePreview.textContent = `%${calcRate.toFixed(4)}`;
-    } else {
-      elements.calcRatePreview.textContent = '%0.0000';
-    }
-  }
+      // Step 2: Current Principal & Calculation
+      rateInStep2Label: document.getElementById('rateInStep2Label'),
+      currentPrincipalInput: document.getElementById('currentPrincipalInput'),
+      currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
+      quickChips: document.querySelectorAll('.quick-chip'),
+      modeCompoundBtn: document.getElementById('modeCompoundBtn'),
+      modeSimpleBtn: document.getElementById('modeSimpleBtn'),
+      dailyProfitResult: document.getElementById('dailyProfitResult'),
 
-  // --- STEP 2: MODE UI ---
-  function updateModeUI() {
-    if (state.mode === 'compound') {
-      elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-      elements.modeCompoundBtn.classList.remove('text-slate-400');
-      elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-      elements.modeSimpleBtn.classList.add('text-slate-400');
-    } else {
-      elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-      elements.modeSimpleBtn.classList.remove('text-slate-400');
-      elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-      elements.modeCompoundBtn.classList.add('text-slate-400');
-    }
-  }
+      // Step 2: 30 & 60 Days Output
+      profit30: document.getElementById('profit30'),
+      balance30: document.getElementById('balance30'),
+      roi30: document.getElementById('roi30'),
+      profit60: document.getElementById('profit60'),
+      balance60: document.getElementById('balance60'),
+      roi60: document.getElementById('roi60'),
 
-  // --- STEP 2: REAL-TIME CALCULATION ENGINE ---
-  function calculate() {
-    const principal = parseNumber(elements.currentPrincipalInput.value);
-    state.currentPrincipal = principal;
+      // Table
+      toggleTableBtn: document.getElementById('toggleTableBtn'),
+      tableContainer: document.getElementById('tableContainer'),
+      tableChevron: document.getElementById('tableChevron'),
+      simpleTableBody: document.getElementById('simpleTableBody'),
 
-    // Make sure we have an active rate (default to 1.5 if 0)
-    let rate = state.activeDailyRate;
-    if (isNaN(rate) || rate <= 0) {
-      rate = 1.5;
-      state.activeDailyRate = 1.5;
+      // Header & Currency & Toast
+      currencyButtons: document.querySelectorAll('.currency-btn'),
+      currencySymbols: document.querySelectorAll('.currency-symbol'),
+      resetAllBtn: document.getElementById('resetAllBtn'),
+      toast: document.getElementById('toast'),
+      toastMsg: document.getElementById('toastMsg')
+    };
+
+    if (!elements.refPrincipalInput || !elements.currentPrincipalInput) {
+      console.warn('InterestCalc: Critical DOM elements not found.');
+      return;
     }
 
-    const dailyRateFrac = rate / 100;
+    function showToast(msg) {
+      if (!elements.toast || !elements.toastMsg) return;
+      elements.toastMsg.textContent = msg;
+      elements.toast.classList.remove('translate-y-24', 'opacity-0');
+      elements.toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        elements.toast.classList.add('translate-y-24', 'opacity-0');
+        elements.toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2600);
+    }
 
-    // Display formatted principal
-    elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
-
-    // 1 Day Return
-    const oneDayProfit = principal * dailyRateFrac;
-    elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
-
-    let currentBalance = principal;
-    let cumulativeProfit = 0;
-    const breakdown = [];
-
-    for (let day = 1; day <= 60; day++) {
-      let dayProfit = 0;
-
-      if (state.mode === 'compound') {
-        // Bileşik: O anki bakiye üzerinden kâr
-        dayProfit = currentBalance * dailyRateFrac;
-        currentBalance += dayProfit;
-        cumulativeProfit = currentBalance - principal;
+    function updateRatePreview() {
+      const p = parseNumber(elements.refPrincipalInput.value);
+      const r = parseNumber(elements.refDailyInterestInput.value);
+      if (p > 0) {
+        const calcRate = (r / p) * 100;
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = `%${calcRate.toFixed(4)}`;
       } else {
-        // Basit: Başlangıç anaparası üzerinden sabit kâr
-        dayProfit = principal * dailyRateFrac;
-        cumulativeProfit += dayProfit;
-        currentBalance = principal + cumulativeProfit;
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%0.0000';
+      }
+    }
+
+    function updateModeUI() {
+      if (!elements.modeCompoundBtn || !elements.modeSimpleBtn) return;
+      if (state.mode === 'compound') {
+        elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+        elements.modeCompoundBtn.classList.remove('text-slate-400');
+        elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+        elements.modeSimpleBtn.classList.add('text-slate-400');
+      } else {
+        elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+        elements.modeSimpleBtn.classList.remove('text-slate-400');
+        elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+        elements.modeCompoundBtn.classList.add('text-slate-400');
+      }
+    }
+
+    function calculate() {
+      const principal = parseNumber(elements.currentPrincipalInput.value);
+      state.currentPrincipal = principal;
+
+      let rate = state.activeDailyRate;
+      if (isNaN(rate) || rate <= 0) {
+        rate = 1.5;
+        state.activeDailyRate = 1.5;
       }
 
-      breakdown.push({
-        day,
-        dayProfit,
-        cumulativeProfit,
-        endBalance: currentBalance,
-        roi: principal > 0 ? (cumulativeProfit / principal) * 100 : 0
+      const dailyRateFrac = rate / 100;
+
+      if (elements.currentPrincipalFormatted) {
+        elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
+      }
+
+      const oneDayProfit = principal * dailyRateFrac;
+      if (elements.dailyProfitResult) {
+        elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
+      }
+
+      let currentBalance = principal;
+      let cumulativeProfit = 0;
+      const breakdown = [];
+
+      for (let day = 1; day <= 60; day++) {
+        let dayProfit = 0;
+        if (state.mode === 'compound') {
+          dayProfit = currentBalance * dailyRateFrac;
+          currentBalance += dayProfit;
+          cumulativeProfit = currentBalance - principal;
+        } else {
+          dayProfit = principal * dailyRateFrac;
+          cumulativeProfit += dayProfit;
+          currentBalance = principal + cumulativeProfit;
+        }
+
+        breakdown.push({
+          day,
+          dayProfit,
+          cumulativeProfit,
+          endBalance: currentBalance,
+          roi: principal > 0 ? (cumulativeProfit / principal) * 100 : 0
+        });
+      }
+
+      const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+      if (elements.profit30) elements.profit30.textContent = `+${formatMoney(res30.cumulativeProfit)}`;
+      if (elements.balance30) elements.balance30.textContent = formatMoney(res30.endBalance);
+      if (elements.roi30) elements.roi30.textContent = `+${res30.roi.toFixed(1)}%`;
+
+      const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+      if (elements.profit60) elements.profit60.textContent = `+${formatMoney(res60.cumulativeProfit)}`;
+      if (elements.balance60) elements.balance60.textContent = formatMoney(res60.endBalance);
+      if (elements.roi60) elements.roi60.textContent = `+${res60.roi.toFixed(1)}%`;
+
+      renderTable(breakdown);
+      persistState();
+    }
+
+    function renderTable(breakdown) {
+      if (!elements.simpleTableBody) return;
+      let rowsHtml = '';
+      for (let i = 0; i < breakdown.length; i++) {
+        const item = breakdown[i];
+        let rowClass = 'hover:bg-dark-850 transition-colors';
+        let badge = '';
+
+        if (item.day === 30) {
+          rowClass += ' highlight-row-30';
+          badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
+        } else if (item.day === 60) {
+          rowClass += ' highlight-row-60';
+          badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
+        }
+
+        rowsHtml += `
+          <tr class="${rowClass}">
+            <td class="py-2 px-3 font-bold text-white whitespace-nowrap">${item.day}. Gün${badge}</td>
+            <td class="py-2 px-3 text-right text-brand-400 font-semibold">+${formatMoney(item.dayProfit)}</td>
+            <td class="py-2 px-3 text-right text-emerald-300 font-semibold">+${formatMoney(item.cumulativeProfit)}</td>
+            <td class="py-2 px-3 text-right text-white font-bold">${formatMoney(item.endBalance)}</td>
+          </tr>
+        `;
+      }
+      elements.simpleTableBody.innerHTML = rowsHtml;
+    }
+
+    function loadPersistedState() {
+      let raw = getCookie(STORAGE_KEY);
+      if (!raw) {
+        try {
+          raw = localStorage.getItem(STORAGE_KEY);
+        } catch (e) {}
+      }
+      if (!raw) return false;
+
+      try {
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return false;
+
+        if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
+        if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
+        if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
+          state.activeDailyRate = Number(data.activeDailyRate);
+        }
+        if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
+          state.currentPrincipal = Number(data.currentPrincipal);
+        }
+        if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
+        if (data.currency) state.currency = data.currency;
+
+        elements.refPrincipalInput.value = state.refPrincipal;
+        elements.refDailyInterestInput.value = state.refDailyInterest;
+        elements.currentPrincipalInput.value = state.currentPrincipal;
+
+        const rateStr = formatRate(state.activeDailyRate);
+        if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
+        if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+
+        elements.currencyButtons.forEach(b => {
+          if (b.dataset.currency === state.currency) {
+            b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.add('text-slate-400');
+          }
+        });
+        elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+
+        updateModeUI();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // --- EVENT LISTENERS ---
+    ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
+      elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
+      elements.refDailyInterestInput.addEventListener(evtName, updateRatePreview);
+      elements.currentPrincipalInput.addEventListener(evtName, calculate);
+    });
+
+    if (elements.saveRateBtn) {
+      elements.saveRateBtn.addEventListener('click', () => {
+        const p = parseNumber(elements.refPrincipalInput.value);
+        const r = parseNumber(elements.refDailyInterestInput.value);
+
+        if (p <= 0) {
+          showToast('Lütfen geçerli bir anapara girin.');
+          elements.refPrincipalInput.focus();
+          return;
+        }
+
+        const calculatedRate = (r / p) * 100;
+        state.refPrincipal = p;
+        state.refDailyInterest = r;
+        state.activeDailyRate = calculatedRate;
+
+        const rateFormatted = formatRate(calculatedRate);
+        if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
+        if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = `%${calculatedRate.toFixed(4)}`;
+
+        elements.currentPrincipalInput.value = p;
+        state.currentPrincipal = p;
+
+        calculate();
+        showToast(`✓ Faiz oranı %${rateFormatted} olarak kaydedildi!`);
       });
     }
 
-    // 30 Days Output
-    const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
-    elements.profit30.textContent = `+${formatMoney(res30.cumulativeProfit)}`;
-    elements.balance30.textContent = formatMoney(res30.endBalance);
-    elements.roi30.textContent = `+${res30.roi.toFixed(1)}%`;
-
-    // 60 Days Output
-    const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
-    elements.profit60.textContent = `+${formatMoney(res60.cumulativeProfit)}`;
-    elements.balance60.textContent = formatMoney(res60.endBalance);
-    elements.roi60.textContent = `+${res60.roi.toFixed(1)}%`;
-
-    // Render Compact Table
-    renderTable(breakdown);
-
-    // Persist
-    persistState();
-  }
-
-  // --- RENDER TABLE ---
-  function renderTable(breakdown) {
-    let rowsHtml = '';
-    for (let i = 0; i < breakdown.length; i++) {
-      const item = breakdown[i];
-      let rowClass = 'hover:bg-dark-850 transition-colors';
-      let badge = '';
-
-      if (item.day === 30) {
-        rowClass += ' highlight-row-30';
-        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
-      } else if (item.day === 60) {
-        rowClass += ' highlight-row-60';
-        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
-      }
-
-      rowsHtml += `
-        <tr class="${rowClass}">
-          <td class="py-2 px-3 font-bold text-white whitespace-nowrap">${item.day}. Gün${badge}</td>
-          <td class="py-2 px-3 text-right text-brand-400 font-semibold">+${formatMoney(item.dayProfit)}</td>
-          <td class="py-2 px-3 text-right text-emerald-300 font-semibold">+${formatMoney(item.cumulativeProfit)}</td>
-          <td class="py-2 px-3 text-right text-white font-bold">${formatMoney(item.endBalance)}</td>
-        </tr>
-      `;
-    }
-    elements.simpleTableBody.innerHTML = rowsHtml;
-  }
-
-  // --- EVENT LISTENERS ---
-  function setupEvents() {
-    // Step 1: Real-time Rate Preview as user types
-    elements.refPrincipalInput.addEventListener('input', updateRatePreview);
-    elements.refDailyInterestInput.addEventListener('input', updateRatePreview);
-
-    // Step 1: "Faiz Oranını Hesapla & Kaydet" Button
-    elements.saveRateBtn.addEventListener('click', () => {
-      const p = parseNumber(elements.refPrincipalInput.value);
-      const r = parseNumber(elements.refDailyInterestInput.value);
-
-      if (p <= 0) {
-        showToast('Lütfen geçerli bir anapara girin.');
-        elements.refPrincipalInput.focus();
-        return;
-      }
-
-      const calculatedRate = (r / p) * 100;
-      state.refPrincipal = p;
-      state.refDailyInterest = r;
-      state.activeDailyRate = calculatedRate;
-
-      const rateFormatted = formatRate(calculatedRate);
-      elements.displayActiveRate.textContent = rateFormatted;
-      elements.rateInStep2Label.textContent = rateFormatted;
-      elements.calcRatePreview.textContent = `%${calculatedRate.toFixed(4)}`;
-
-      // Automatically sync Step 2's principal with this principal
-      elements.currentPrincipalInput.value = p;
-      state.currentPrincipal = p;
-
-      // Run calculation immediately
-      calculate();
-
-      showToast(`✓ Faiz oranı %${rateFormatted} olarak kaydedildi!`);
-    });
-
-    // Step 2: Instant calculation on every keystroke
-    elements.currentPrincipalInput.addEventListener('input', () => {
-      calculate();
-    });
-
-    // Quick Amount Chips
     elements.quickChips.forEach(chip => {
       chip.addEventListener('click', () => {
         const amt = parseFloat(chip.dataset.amt);
@@ -371,26 +357,31 @@
       });
     });
 
-    // Mode Toggle
-    elements.modeCompoundBtn.addEventListener('click', () => {
-      state.mode = 'compound';
-      updateModeUI();
-      calculate();
-    });
+    if (elements.modeCompoundBtn) {
+      elements.modeCompoundBtn.addEventListener('click', () => {
+        state.mode = 'compound';
+        updateModeUI();
+        calculate();
+      });
+    }
 
-    elements.modeSimpleBtn.addEventListener('click', () => {
-      state.mode = 'simple';
-      updateModeUI();
-      calculate();
-    });
+    if (elements.modeSimpleBtn) {
+      elements.modeSimpleBtn.addEventListener('click', () => {
+        state.mode = 'simple';
+        updateModeUI();
+        calculate();
+      });
+    }
 
-    // Table Accordion Toggle
-    elements.toggleTableBtn.addEventListener('click', () => {
-      const isHidden = elements.tableContainer.classList.toggle('hidden');
-      elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
-    });
+    if (elements.toggleTableBtn && elements.tableContainer) {
+      elements.toggleTableBtn.addEventListener('click', () => {
+        const isHidden = elements.tableContainer.classList.toggle('hidden');
+        if (elements.tableChevron) {
+          elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      });
+    }
 
-    // Currency Switcher
     elements.currencyButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         elements.currencyButtons.forEach(b => {
@@ -406,58 +397,57 @@
       });
     });
 
-    // Reset All
-    elements.resetAllBtn.addEventListener('click', () => {
-      eraseCookie(STORAGE_KEY);
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (e) {}
+    if (elements.resetAllBtn) {
+      elements.resetAllBtn.addEventListener('click', () => {
+        eraseCookie(STORAGE_KEY);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
 
-      state.refPrincipal = 10000;
-      state.refDailyInterest = 150;
-      state.activeDailyRate = 1.5;
-      state.currentPrincipal = 10000;
-      state.mode = 'compound';
-      state.currency = '₺';
+        state.refPrincipal = 10000;
+        state.refDailyInterest = 150;
+        state.activeDailyRate = 1.5;
+        state.currentPrincipal = 10000;
+        state.mode = 'compound';
+        state.currency = '₺';
 
-      elements.refPrincipalInput.value = 10000;
-      elements.refDailyInterestInput.value = 150;
-      elements.currentPrincipalInput.value = 10000;
-      
-      const rateStr = formatRate(state.activeDailyRate);
-      elements.displayActiveRate.textContent = rateStr;
-      elements.rateInStep2Label.textContent = rateStr;
-      
-      updateRatePreview();
-      updateModeUI();
+        elements.refPrincipalInput.value = 10000;
+        elements.refDailyInterestInput.value = 150;
+        elements.currentPrincipalInput.value = 10000;
 
-      elements.currencyButtons.forEach((b, idx) => {
-        if (idx === 0) {
-          b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
-          b.classList.remove('text-slate-400');
-        } else {
-          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
-          b.classList.add('text-slate-400');
-        }
+        const rateStr = formatRate(state.activeDailyRate);
+        if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
+        if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+
+        updateRatePreview();
+        updateModeUI();
+
+        elements.currencyButtons.forEach((b, idx) => {
+          if (idx === 0) {
+            b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.add('text-slate-400');
+          }
+        });
+        elements.currencySymbols.forEach(s => (s.textContent = '₺'));
+
+        calculate();
+        showToast('Tüm değerler ve çerezler sıfırlandı.');
       });
-      elements.currencySymbols.forEach(s => (s.textContent = '₺'));
+    }
 
-      calculate();
-      showToast('Tüm değerler ve çerezler varsayılana sıfırlandı.');
-    });
-  }
-
-  // --- INITIALIZATION ---
-  function init() {
-    setupEvents();
+    // Load and calculate initial state
     loadPersistedState();
     updateRatePreview();
     calculate();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  // Safe run: If DOM elements are already available, initialize immediately!
+  if (document.getElementById('refPrincipalInput')) {
+    initApp();
   } else {
-    init();
+    document.addEventListener('DOMContentLoaded', initApp);
   }
 })();
