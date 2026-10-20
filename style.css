@@ -1,4 +1,4 @@
-/* Custom styling for InterestCalc */
+/* Custom styles for Minimal InterestCalc */
 
 html {
   scroll-behavior: smooth;
@@ -7,16 +7,16 @@ html {
 
 /* Custom smooth scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #0b0f17;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #1e293b;
   border-radius: 9999px;
 }
 
@@ -24,16 +24,7 @@ html {
   background: #10b981;
 }
 
-/* Hide scrollbar utility for clean mobile scrolling */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Custom transitions and input styling */
+/* Hide number spin buttons */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -44,62 +35,25 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Mobile-friendly tap highlight */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Prevent unwanted zooming on mobile input focus */
+/* Prevent iOS auto-zoom on input focus */
 @media screen and (max-width: 768px) {
-  input[type="number"],
-  input[type="text"] {
+  input[type="number"] {
     font-size: 16px !important;
   }
 }
 
-/* Interest mode cards active state */
-.interest-mode-card.active {
-  border-color: rgba(16, 185, 129, 0.6);
-  background-color: rgba(16, 185, 129, 0.08);
-  box-shadow: 0 0 15px -3px rgba(16, 185, 129, 0.15);
+/* Tap highlight removal */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Range input styling */
-input[type="range"]::-webkit-slider-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #10b981;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+/* Highlight specific rows in table */
+.highlight-row-30 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  font-weight: 700;
 }
 
-/* Sticky first column styling for mobile horizontal scroll */
-.table-scroll-container td:first-child {
-  position: sticky;
-  left: 0;
-  background-color: #0b0f17;
-  z-index: 10;
-  box-shadow: 2px 0 6px -1px rgba(0, 0, 0, 0.5);
-}
-
-/* Highlight badge for milestone rows in table */
-.highlight-milestone {
-  background-color: rgba(16, 185, 129, 0.08) !important;
-  font-weight: 600;
-}
-
-.highlight-milestone td:first-child {
-  border-left: 3px solid #10b981;
-  background-color: #0d1e1c !important;
-}
-
-.highlight-60 {
-  background-color: rgba(6, 182, 212, 0.08) !important;
-  font-weight: 600;
-}
-
-.highlight-60 td:first-child {
-  border-left: 3px solid #06b6d4;
-  background-color: #0b1e28 !important;
+.highlight-row-60 {
+  background-color: rgba(6, 182, 212, 0.1) !important;
+  font-weight: 700;
 }
