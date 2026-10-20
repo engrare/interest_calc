@@ -1,6 +1,6 @@
-# InterestCalc - Minimalist Faiz & Kazanç Hesaplayıcı
+# Engrare Finans - Minimalist Faiz & Kazanç Hesaplayıcı
 
-Tamamen istemci taraflı (frontend-only), sade, mobil uyumlu ve çerez destekli faiz ve getiri hesaplama web aracı.
+Engrare Finans; tamamen istemci taraflı (frontend-only), hızlı, mobil uyumlu ve çerez destekli faiz ve getiri hesaplama web aracıdır.
 
 ---
 
@@ -22,11 +22,12 @@ Tamamen istemci taraflı (frontend-only), sade, mobil uyumlu ve çerez destekli 
 
 ## 🛠️ Özellikler
 
+- **Kurumsal Engrare Tasarımı:** Engrare 3D ekosistemine uygun logo, ikonlar ve modern koyu arayüz.
 - **Sade & Net Arayüz:** Gereksiz menülerden arındırılmış, doğrudan sonuca odaklı tasarım.
 - **30 ve 60 Günlük Sonuç Kartları:** 1 ay ve 2 aylık net kâr tutarı, toplam bakiye ve büyüme oranı (ROI).
 - **Bileşik ve Basit Faiz Seçimi:** Kazancın her gün anaparaya eklenerek katlanması veya sabit kalması seçeneği.
 - **Detay Tablosu (Opsiyonel):** 60 güne kadar gün gün kazanç dökümü.
-- **Mobil Uyumlu:** Telefon ve tabletlerde mükemmel dokunmatik deneyim.
+- **Mobil & PWA Uyumlu:** Telefon ve tabletlerde mükemmel dokunmatik deneyim.
 
 ---
 

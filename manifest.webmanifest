@@ -1,0 +1,15 @@
+{
+  "name": "Engrare Finans",
+  "short_name": "Engrare Finans",
+  "description": "Engrare Finans - Günlük Faiz ve Getiri Hesaplayıcı",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B0F17",
+  "theme_color": "#0B0F17",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

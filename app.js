@@ -1,5 +1,5 @@
 /**
- * InterestCalc - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
+ * Engrare Finans - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
  * 1. Anapara ve günlük kazançtan faiz oranı hesaplanır ve kaydedilir.
  * 2. Sonraki tüm hesaplamalar sadece o anki anapara yazılarak bu oran üzerinden anında yapılır.
  * Değerler çerezlerde (cookies) ve localStorage'da saklanır.
@@ -134,7 +134,7 @@
     };
 
     if (!elements.refPrincipalInput || !elements.currentPrincipalInput) {
-      console.warn('InterestCalc: Critical DOM elements not found.');
+      console.warn('Engrare Finans: Critical DOM elements not found.');
       return;
     }
 

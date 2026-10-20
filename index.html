@@ -6,7 +6,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Faiz & Kazanç Hesaplayıcı | 30 ve 60 Günlük Projeksiyon</title>
+  <title>Engrare Finans | Günlük Faiz & Kazanç Hesaplayıcı</title>
+  <meta name="description" content="Engrare Finans - Günlük faiz kazancı, 30 ve 60 günlük projeksiyon ile anapara net getiri hesaplama aracı." />
+
+  <!-- Favicon & Touch Icons from Engrare -->
+  <link rel="icon" type="image/png" href="favicon.png?v=2" sizes="48x48" />
+  <link rel="icon" href="favicon.ico?v=2" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0B0F17" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts -->
@@ -55,12 +63,11 @@
   <header class="border-b border-slate-800/80 bg-dark-900/90 backdrop-blur sticky top-0 z-30">
     <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-500 to-emerald-400 flex items-center justify-center shadow-md shadow-brand-500/20">
-          <svg class="w-4 h-4 text-dark-950 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        </div>
-        <span class="font-bold text-base text-white tracking-tight">InterestCalc</span>
+        <a href="/" class="flex items-center gap-2 group focus:outline-none" title="Engrare Finans">
+          <img src="assets/engrare_logo_white.png" alt="Engrare" class="h-6 sm:h-7 w-auto object-contain transition group-hover:opacity-90" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+          <span class="hidden font-bold text-base text-white tracking-tight">ENGRARE</span>
+          <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-500/15 text-brand-400 border border-brand-500/30">Finans</span>
+        </a>
       </div>
 
       <div class="flex items-center space-x-2">
@@ -341,13 +348,17 @@
   </div>
 
   <footer class="py-6 text-center text-xs text-slate-500">
-    <p>InterestCalc &copy; 2026 • Frontend Only • Çerezlerde Saklanır</p>
+    <div class="flex items-center justify-center gap-2 mb-2">
+      <img src="assets/engrare_logo_white.png" alt="Engrare" class="h-4 w-auto opacity-40 hover:opacity-75 transition object-contain" />
+      <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Finans</span>
+    </div>
+    <p>Engrare Finans &copy; 2026 • Frontend Only • Çerezlerde Saklanır</p>
   </footer>
 
   <!-- Direct Inlined Execution to Guarantee 0 CDN/Browser Cache Desynchronization -->
   <script>
     /**
-     * InterestCalc - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
+     * Engrare Finans - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
      */
     (function () {
       'use strict';
