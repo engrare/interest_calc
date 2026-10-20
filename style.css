@@ -37,7 +37,8 @@ input[type="number"] {
 
 /* Prevent iOS auto-zoom on input focus */
 @media screen and (max-width: 768px) {
-  input[type="number"] {
+  input[type="number"],
+  input[type="text"] {
     font-size: 16px !important;
   }
 }
@@ -45,6 +46,11 @@ input[type="number"] {
 /* Tap highlight removal */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area inset for modern mobile bottom navigation */
+.safe-bottom {
+  padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
 }
 
 /* Highlight specific rows in table */
@@ -56,4 +62,20 @@ input[type="number"] {
 .highlight-row-60 {
   background-color: rgba(6, 182, 212, 0.1) !important;
   font-weight: 700;
+}
+
+/* Tab pane fade transition */
+.tab-pane {
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

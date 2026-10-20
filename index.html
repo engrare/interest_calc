@@ -2,26 +2,27 @@
 <html lang="tr" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Engrare Finans | Günlük Faiz & Kazanç Hesaplayıcı</title>
-  <meta name="description" content="Engrare Finans - Günlük faiz kazancı, 30 ve 60 günlük projeksiyon ile anapara net getiri hesaplama aracı." />
+  <title>Engrare Finans | Günlük Faiz & Taksit Arbitraj Hesaplayıcı</title>
+  <meta name="description" content="Engrare Finans - Günlük faiz kazancı ve taksitli alışveriş faiz arbitrajı ile reel ödeme maliyeti hesaplama aracı." />
 
   <!-- Favicon & Touch Icons from Engrare -->
-  <link rel="icon" type="image/png" href="favicon.png?v=2" sizes="48x48" />
-  <link rel="icon" href="favicon.ico?v=2" sizes="any" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2" />
+  <link rel="icon" type="image/png" href="favicon.png?v=3" sizes="48x48" />
+  <link rel="icon" href="favicon.ico?v=3" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#0B0F17" />
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261020_05" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20261020_06" />
   <script>
     window.tailwind = window.tailwind || {};
     window.tailwind.config = {
@@ -61,8 +62,9 @@
 
   <!-- Header -->
   <header class="border-b border-slate-800/80 bg-dark-900/90 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-      <div class="flex items-center space-x-2.5">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+      <!-- Logo -->
+      <div class="flex items-center space-x-2 shrink-0">
         <a href="/" class="flex items-center gap-2 group focus:outline-none" title="Engrare Finans">
           <img src="assets/engrare_logo_white.png" alt="Engrare" class="h-6 sm:h-7 w-auto object-contain transition group-hover:opacity-90" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
           <span class="hidden font-bold text-base text-white tracking-tight">ENGRARE</span>
@@ -70,16 +72,42 @@
         </a>
       </div>
 
-      <div class="flex items-center space-x-2">
+      <!-- Desktop Tabs Switcher (Masaüstü Sekmeler) -->
+      <nav class="hidden md:flex items-center bg-dark-950/80 border border-slate-800 rounded-xl p-1 text-xs font-semibold">
+        <button
+          type="button"
+          data-target-tab="interest"
+          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-white bg-brand-600 shadow"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <span>Faiz & Kazanç</span>
+        </button>
+        <button
+          type="button"
+          data-target-tab="installment"
+          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span>Taksit Arbitrajı</span>
+          <span class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300">Yeni</span>
+        </button>
+      </nav>
+
+      <!-- Right Controls: Currency & Reset -->
+      <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
         <!-- Currency Selector -->
         <div class="flex items-center bg-dark-850 border border-slate-800 rounded-lg p-0.5 text-xs font-semibold">
-          <button type="button" data-currency="₺" class="currency-btn active px-2.5 py-1 rounded-md text-white bg-brand-600 shadow">₺</button>
-          <button type="button" data-currency="$" class="currency-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-white">$</button>
-          <button type="button" data-currency="€" class="currency-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-white">€</button>
+          <button type="button" data-currency="₺" class="currency-btn active px-2 sm:px-2.5 py-1 rounded-md text-white bg-brand-600 shadow">₺</button>
+          <button type="button" data-currency="$" class="currency-btn px-2 sm:px-2.5 py-1 rounded-md text-slate-400 hover:text-white">$</button>
+          <button type="button" data-currency="€" class="currency-btn px-2 sm:px-2.5 py-1 rounded-md text-slate-400 hover:text-white">€</button>
         </div>
 
         <!-- Reset Button -->
-        <button id="resetAllBtn" type="button" title="Değerleri ve Çerezleri Sıfırla" class="px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
+        <button id="resetAllBtn" type="button" title="Değerleri ve Çerezleri Sıfırla" class="px-2 sm:px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -89,265 +117,625 @@
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-3xl mx-auto px-4 py-5 space-y-5">
+  <!-- Main Container (pb-28 for bottom navigation clearance) -->
+  <main class="max-w-3xl mx-auto px-4 py-5 space-y-5 pb-28 sm:pb-24">
 
-    <!-- ADIM 1: FAİZ ORANI HESAPLA & KAYDET -->
-    <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center border border-brand-500/30">1</span>
-          <div>
-            <h2 class="text-sm sm:text-base font-bold text-white">Faiz Oranını Belirle & Kaydet</h2>
-            <p class="text-xs text-slate-400">Anapara ve günlük kazancınızı girip faiz oranınızı sabitleyin</p>
+    <!-- ========================================== -->
+    <!-- TAB 1: FAİZ & KAZANÇ HESAPLAYICI           -->
+    <!-- ========================================== -->
+    <div id="tabContentInterest" class="tab-pane space-y-5">
+      
+      <!-- ADIM 1: FAİZ ORANI HESAPLA & KAYDET -->
+      <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center border border-brand-500/30">1</span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-white">Faiz Oranını Belirle & Kaydet</h2>
+              <p class="text-xs text-slate-400">Anapara ve günlük kazancınızı girip faiz oranınızı sabitleyin</p>
+            </div>
+          </div>
+
+          <!-- Current Saved Rate Badge -->
+          <div class="px-2.5 py-1 rounded-lg bg-brand-500/15 border border-brand-500/30 text-brand-300 font-mono text-xs font-bold flex items-center gap-1.5 shrink-0">
+            <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+            <span>Aktif: %<span id="displayActiveRate">1.50</span></span>
           </div>
         </div>
 
-        <!-- Current Saved Rate Badge -->
-        <div class="px-2.5 py-1 rounded-lg bg-brand-500/15 border border-brand-500/30 text-brand-300 font-mono text-xs font-bold flex items-center gap-1.5 shrink-0">
-          <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
-          <span>Aktif: %<span id="displayActiveRate">1.50</span></span>
-        </div>
-      </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Input 1: Anapara -->
+          <div>
+            <label for="refPrincipalInput" class="block text-xs font-semibold text-slate-300 mb-1">
+              Referans Anapara Tutarı
+            </label>
+            <div class="relative">
+              <span class="currency-symbol absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">₺</span>
+              <input
+                type="text"
+                id="refPrincipalInput"
+                value="10000"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-9 pr-3 py-2.5 text-white font-mono text-base font-bold outline-none transition"
+                placeholder="10000"
+              />
+            </div>
+          </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <!-- Input 1: Anapara -->
+          <!-- Input 2: Günlük Faiz Kazancı -->
+          <div>
+            <label for="refDailyInterestInput" class="block text-xs font-semibold text-slate-300 mb-1">
+              Günlük Alınan Faiz / Kazanç
+            </label>
+            <div class="relative">
+              <span class="currency-symbol absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">₺</span>
+              <input
+                type="text"
+                id="refDailyInterestInput"
+                value="150"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-9 pr-3 py-2.5 text-white font-mono text-base font-bold outline-none transition"
+                placeholder="150"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Rate Preview & Save Button -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
+          <div class="text-xs text-slate-400 flex items-center gap-1.5">
+            <span>Hesaplanan Günlük Oran:</span>
+            <span class="text-brand-400 font-bold font-mono text-sm sm:text-base" id="calcRatePreview">%1.5000</span>
+            <span class="text-slate-500 text-[11px]">/ gün</span>
+          </div>
+
+          <button
+            type="button"
+            id="saveRateBtn"
+            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-bold text-xs transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+            Faiz Oranını Hesapla & Kaydet
+          </button>
+        </div>
+      </section>
+
+      <!-- ADIM 2: O ANKİ ANAPARAYI YAZIN & ANINDA HESAPLASIN -->
+      <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold flex items-center justify-center border border-cyan-500/30">2</span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-white">Anlık Kazanç Hesabı</h2>
+              <p class="text-xs text-slate-400">Sadece o anki anaparanızı yazın, kayıtlı oranla anında hesaplasın</p>
+            </div>
+          </div>
+
+          <span class="text-[11px] font-mono text-cyan-400 font-semibold bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20 hidden sm:inline-block">
+            Oran: %<span id="rateInStep2Label">1.50</span> / gün
+          </span>
+        </div>
+
+        <!-- Current Principal Input -->
         <div>
-          <label for="refPrincipalInput" class="block text-xs font-semibold text-slate-300 mb-1">
-            Anapara Tutarı
-          </label>
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="currentPrincipalInput" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              O Anki Anaparanız
+            </label>
+            <span class="text-xs font-mono text-brand-400 font-semibold" id="currentPrincipalFormatted">10.000 ₺</span>
+          </div>
           <div class="relative">
-            <span class="currency-symbol absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">₺</span>
+            <span class="currency-symbol absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-mono text-xl sm:text-2xl font-bold">₺</span>
             <input
               type="text"
-              id="refPrincipalInput"
+              id="currentPrincipalInput"
               value="10000"
               inputmode="decimal"
-              class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-9 pr-3 py-2.5 text-white font-mono text-base font-bold outline-none transition"
-              placeholder="10000"
+              class="w-full bg-dark-950 border-2 border-slate-700/80 focus:border-brand-500 rounded-2xl pl-11 pr-4 py-3 text-white font-mono text-xl sm:text-2xl font-bold outline-none transition"
+              placeholder="0"
             />
+          </div>
+
+          <!-- Quick Amount Chips -->
+          <div class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 mt-2.5">
+            <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="10000">10K</button>
+            <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="50000">50K</button>
+            <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="100000">100K</button>
+            <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="250000">250K</button>
+            <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center col-span-4 sm:col-span-1 cursor-pointer" data-amt="500000">500K</button>
           </div>
         </div>
 
-        <!-- Input 2: Günlük Faiz Kazancı -->
+        <!-- Mode Toggle: Bileşik vs Basit -->
+        <div class="flex items-center justify-between bg-dark-950 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button
+            type="button"
+            id="modeCompoundBtn"
+            class="flex-1 py-2.5 rounded-lg text-center transition-all bg-brand-600 text-white shadow font-bold cursor-pointer"
+          >
+            Bileşik Faiz (Katlanarak Büyür)
+          </button>
+          <button
+            type="button"
+            id="modeSimpleBtn"
+            class="flex-1 py-2.5 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer"
+          >
+            Basit Faiz (Sabit Günlük)
+          </button>
+        </div>
+
+        <!-- Daily Return Mini Bar -->
+        <div class="p-3 rounded-xl bg-dark-950/80 border border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-400">1 Günlük Faiz Kazancı:</span>
+          <span class="font-mono font-bold text-emerald-400 text-sm sm:text-base" id="dailyProfitResult">₺150,00</span>
+        </div>
+
+        <!-- VİTRİN: 30 VE 60 GÜNLÜK FAİZ KAZANCI KARTLARI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <!-- 30 GÜNLÜK KAZANÇ KARTI -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-emerald-500/40 p-4 sm:p-5 shadow-xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                1 Ay Vadeli
+              </span>
+              <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                30. GÜN
+              </span>
+            </div>
+
+            <div class="text-xs text-slate-400">Net Faiz Kazancı</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight my-1 break-words" id="profit30">
+              +₺5.630,80
+            </div>
+
+            <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Toplam Bakiye:</span>
+                <span class="font-mono font-bold text-slate-200" id="balance30">15.630,80 ₺</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Büyüme Oranı (ROI):</span>
+                <span class="font-mono font-bold text-emerald-400" id="roi30">+56.3%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 60 GÜNLÜK KAZANÇ KARTI -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-cyan-500/40 p-4 sm:p-5 shadow-xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                2 Ay Vadeli
+              </span>
+              <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                60. GÜN
+              </span>
+            </div>
+
+            <div class="text-xs text-slate-400">Net Faiz Kazancı</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight my-1 break-words" id="profit60">
+              +₺14.432,20
+            </div>
+
+            <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Toplam Bakiye:</span>
+                <span class="font-mono font-bold text-slate-200" id="balance60">24.432,20 ₺</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Büyüme Oranı (ROI):</span>
+                <span class="font-mono font-bold text-cyan-400" id="roi60">+144.3%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- GÜN GÜN DÖKÜM TABLOSU -->
+      <div class="border border-slate-800 rounded-2xl bg-dark-900 overflow-hidden shadow-lg">
+        <button
+          type="button"
+          id="toggleTableBtn"
+          class="w-full px-4 py-3 text-left text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-between transition cursor-pointer"
+        >
+          <span class="flex items-center gap-2">
+            <span>📋</span>
+            <span>Gün Gün Kazanç Tablosunu İncele (İlk 60 Gün)</span>
+          </span>
+          <svg id="tableChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <div id="tableContainer" class="hidden border-t border-slate-800/80 overflow-x-auto max-h-72">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="sticky top-0 bg-dark-950 border-b border-slate-800 text-slate-400 font-semibold uppercase">
+              <tr>
+                <th class="py-2.5 px-3">Gün</th>
+                <th class="py-2.5 px-3 text-right">Günün Kazancı</th>
+                <th class="py-2.5 px-3 text-right">Toplam Faiz</th>
+                <th class="py-2.5 px-3 text-right">Gün Sonu Bakiye</th>
+              </tr>
+            </thead>
+            <tbody id="simpleTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: TAKSİT ARBİTRAJI & REEL MALİYET    -->
+    <!-- ========================================== -->
+    <div id="tabContentInstallment" class="tab-pane hidden space-y-5">
+      
+      <!-- BİLGİ & AKTİF FAİZ ORANI BANNER -->
+      <section class="bg-gradient-to-r from-dark-900 via-dark-850 to-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-xl bg-brand-500/20 text-brand-400 text-sm font-bold flex items-center justify-center border border-brand-500/30">🛍️</span>
+              <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Taksitli Alışveriş Reel Maliyeti</h2>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+              Alışveriş tutarının tamamını hemen harcamak yerine faize yatırın; taksitleri aydan aya faizli bakiyeden ödeyerek reel cebinizden çıkan miktarı ve net tasarrufunuzu görün.
+            </p>
+          </div>
+
+          <!-- Active Daily Rate Badge + Quick Switch to Rate Setup -->
+          <div class="shrink-0 flex items-center gap-2">
+            <div class="px-3 py-1.5 rounded-xl bg-dark-950 border border-brand-500/30 text-xs font-mono font-bold flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+              <span class="text-slate-300">Faiz:</span>
+              <span class="text-brand-400 font-bold">%<span class="active-rate-shared">1.50</span></span>
+              <span class="text-slate-500 text-[10px]">/ gün</span>
+            </div>
+            <button
+              type="button"
+              id="switchAndAdjustRateBtn"
+              title="Faiz Oranını Değiştir"
+              class="px-2.5 py-1.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>Oranı Değiştir</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GİRDİ FORMU (ALIŞVERİŞ TUTARI & TAKSİT SAYISI) -->
+      <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+        
+        <!-- 1. Toplam Alışveriş Tutarı -->
         <div>
-          <label for="refDailyInterestInput" class="block text-xs font-semibold text-slate-300 mb-1">
-            Günlük Alınan Faiz / Kazanç
-          </label>
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="installmentTotalInput" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Toplam Alışveriş Tutarı
+            </label>
+            <span class="text-xs font-mono text-brand-400 font-semibold" id="installmentTotalFormatted">30.000 ₺</span>
+          </div>
           <div class="relative">
-            <span class="currency-symbol absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">₺</span>
+            <span class="currency-symbol absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-mono text-xl sm:text-2xl font-bold">₺</span>
             <input
               type="text"
-              id="refDailyInterestInput"
-              value="150"
+              id="installmentTotalInput"
+              value="30000"
               inputmode="decimal"
-              class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-9 pr-3 py-2.5 text-white font-mono text-base font-bold outline-none transition"
-              placeholder="150"
+              class="w-full bg-dark-950 border-2 border-slate-700/80 focus:border-brand-500 rounded-2xl pl-11 pr-4 py-3 text-white font-mono text-xl sm:text-2xl font-bold outline-none transition"
+              placeholder="30000"
             />
           </div>
+
+          <!-- Quick Chips for Shopping Amount -->
+          <div class="grid grid-cols-5 gap-1.5 sm:gap-2 mt-2.5">
+            <button type="button" class="installment-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="10000">10K</button>
+            <button type="button" class="installment-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="25000">25K</button>
+            <button type="button" class="installment-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="50000">50K</button>
+            <button type="button" class="installment-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="100000">100K</button>
+            <button type="button" class="installment-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="250000">250K</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Live Rate Preview & Save Button -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
-        <div class="text-xs text-slate-400 flex items-center gap-1.5">
-          <span>Hesaplanan Günlük Oran:</span>
-          <span class="text-brand-400 font-bold font-mono text-sm sm:text-base" id="calcRatePreview">%1.5000</span>
-          <span class="text-slate-500 text-[11px]">/ gün</span>
+        <!-- 2. Taksit Sayısı Seçimi -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Taksit Sayısı (Ay)
+            </label>
+            <span class="text-xs font-mono text-slate-400">
+              Aylık Taksit: <span id="previewMonthlyInstallment" class="font-bold text-white">₺5.000,00</span>
+            </span>
+          </div>
+
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            <button type="button" class="inst-count-btn py-2.5 px-2 rounded-xl font-mono text-xs sm:text-sm font-bold border transition text-center cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-months="2">2 Taksit</button>
+            <button type="button" class="inst-count-btn py-2.5 px-2 rounded-xl font-mono text-xs sm:text-sm font-bold border transition text-center cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-months="3">3 Taksit</button>
+            <button type="button" class="inst-count-btn py-2.5 px-2 rounded-xl font-mono text-xs sm:text-sm font-bold border transition text-center cursor-pointer bg-brand-600 border-brand-500 text-white shadow" data-months="6">6 Taksit</button>
+            <button type="button" class="inst-count-btn py-2.5 px-2 rounded-xl font-mono text-xs sm:text-sm font-bold border transition text-center cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-months="9">9 Taksit</button>
+            <button type="button" class="inst-count-btn py-2.5 px-2 rounded-xl font-mono text-xs sm:text-sm font-bold border transition text-center cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-months="12">12 Taksit</button>
+            
+            <!-- Custom Installment Input -->
+            <div class="relative col-span-4 sm:col-span-1">
+              <input
+                type="number"
+                id="installmentCountInput"
+                value="6"
+                min="1"
+                max="36"
+                class="w-full h-full py-2.5 px-3 bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl font-mono text-xs sm:text-sm font-bold text-center text-white outline-none transition"
+                placeholder="Özel Ay"
+              />
+            </div>
+          </div>
         </div>
 
-        <button
-          type="button"
-          id="saveRateBtn"
-          class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-bold text-xs transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-          </svg>
-          Faiz Oranını Hesapla & Kaydet
-        </button>
-      </div>
-    </section>
-
-    <!-- ADIM 2: O ANKİ ANAPARAYI YAZIN & ANINDA HESAPLASIN -->
-    <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold flex items-center justify-center border border-cyan-500/30">2</span>
+        <!-- 3. Taksit Başlangıcı & Faiz Türü Seçenekleri (2 Sütunlu) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+          
+          <!-- İlk Taksit Ne Zaman? -->
           <div>
-            <h2 class="text-sm sm:text-base font-bold text-white">Anlık Kazanç Hesabı</h2>
-            <p class="text-xs text-slate-400">Sadece o anki anaparanızı yazın, kayıtlı oranla anında hesaplasın</p>
-          </div>
-        </div>
-
-        <span class="text-[11px] font-mono text-cyan-400 font-semibold bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20 hidden sm:inline-block">
-          Oran: %<span id="rateInStep2Label">1.50</span> / gün
-        </span>
-      </div>
-
-      <!-- Current Principal Input (Big and clear) -->
-      <div>
-        <div class="flex justify-between items-center mb-1.5">
-          <label for="currentPrincipalInput" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
-            O Anki Anaparanız
-          </label>
-          <span class="text-xs font-mono text-brand-400 font-semibold" id="currentPrincipalFormatted">10.000 ₺</span>
-        </div>
-        <div class="relative">
-          <span class="currency-symbol absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-mono text-xl sm:text-2xl font-bold">₺</span>
-          <input
-            type="text"
-            id="currentPrincipalInput"
-            value="10000"
-            inputmode="decimal"
-            class="w-full bg-dark-950 border-2 border-slate-700/80 focus:border-brand-500 rounded-2xl pl-11 pr-4 py-3 text-white font-mono text-xl sm:text-2xl font-bold outline-none transition"
-            placeholder="0"
-          />
-        </div>
-
-        <!-- Quick Amount Chips -->
-        <div class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 mt-2.5">
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="10000">10K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="50000">50K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="100000">100K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center cursor-pointer" data-amt="250000">250K</button>
-          <button type="button" class="quick-chip py-2 rounded-xl bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 font-mono text-xs font-semibold border border-slate-800 transition text-center col-span-4 sm:col-span-1 cursor-pointer" data-amt="500000">500K</button>
-        </div>
-      </div>
-
-      <!-- Mode Toggle: Bileşik vs Basit -->
-      <div class="flex items-center justify-between bg-dark-950 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
-        <button
-          type="button"
-          id="modeCompoundBtn"
-          class="flex-1 py-2.5 rounded-lg text-center transition-all bg-brand-600 text-white shadow font-bold cursor-pointer"
-        >
-          Bileşik Faiz (Katlanarak Büyür)
-        </button>
-        <button
-          type="button"
-          id="modeSimpleBtn"
-          class="flex-1 py-2.5 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer"
-        >
-          Basit Faiz (Sabit Günlük)
-        </button>
-      </div>
-
-      <!-- Daily Return Mini Bar -->
-      <div class="p-3 rounded-xl bg-dark-950/80 border border-slate-800/80 flex items-center justify-between text-xs">
-        <span class="text-slate-400">1 Günlük Faiz Kazancı:</span>
-        <span class="font-mono font-bold text-emerald-400 text-sm sm:text-base" id="dailyProfitResult">₺150,00</span>
-      </div>
-
-      <!-- VİTRİN: 30 VE 60 GÜNLÜK FAİZ KAZANCI KARTLARI -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-        
-        <!-- 30 GÜNLÜK KAZANÇ KARTI -->
-        <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-emerald-500/40 p-4 sm:p-5 shadow-xl relative overflow-hidden">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              1 Ay Vadeli
-            </span>
-            <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-              30. GÜN
-            </span>
-          </div>
-
-          <div class="text-xs text-slate-400">Net Faiz Kazancı</div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight my-1 break-words" id="profit30">
-            +₺5.630,80
-          </div>
-
-          <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Toplam Bakiye:</span>
-              <span class="font-mono font-bold text-slate-200" id="balance30">15.630,80 ₺</span>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              İlk Taksit Ödeme Zamanı
+            </label>
+            <div class="flex items-center bg-dark-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+              <button
+                type="button"
+                id="firstPayDelayedBtn"
+                class="flex-1 py-2 rounded-lg text-center transition-all bg-brand-600 text-white font-bold shadow cursor-pointer text-[11px] sm:text-xs"
+              >
+                1 Ay (30 Gün) Sonra
+              </button>
+              <button
+                type="button"
+                id="firstPayImmediateBtn"
+                class="flex-1 py-2 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer text-[11px] sm:text-xs"
+              >
+                Hemen Peşin
+              </button>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Büyüme Oranı (ROI):</span>
-              <span class="font-mono font-bold text-emerald-400" id="roi30">+56.3%</span>
+            <p class="text-[10px] text-slate-500 mt-1">Standart kredi kartı ekstrelerinde ilk taksit 30 gün sonra ödenir.</p>
+          </div>
+
+          <!-- Faiz Hesaplama Modu -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              Faiz İşleme Modu
+            </label>
+            <div class="flex items-center bg-dark-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+              <button
+                type="button"
+                id="instModeCompoundBtn"
+                class="flex-1 py-2 rounded-lg text-center transition-all bg-brand-600 text-white font-bold shadow cursor-pointer text-[11px] sm:text-xs"
+              >
+                Bileşik Faiz
+              </button>
+              <button
+                type="button"
+                id="instModeSimpleBtn"
+                class="flex-1 py-2 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer text-[11px] sm:text-xs"
+              >
+                Basit Faiz
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Bileşik faizde para günlük katlanarak daha yüksek getiri sağlar.</p>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- VİTRİN: REEL MALİYET & KAZANILAN FAİZ KARTLARI -->
+      <section class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- KART 1: REEL MALİYET (GERÇEK CEBİNİZDEN ÇIKAN) -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-brand-500/50 p-5 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-brand-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-400 animate-pulse"></span>
+                Reel Ödenen Tutar
+              </span>
+              <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-300 border border-brand-500/30">
+                Gerçek Maliyet
+              </span>
+            </div>
+
+            <div class="text-xs text-slate-400">Cebinizden Çıkan Net Para</div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-tight my-1.5 break-words" id="realCostResult">
+              ₺24.377,42
+            </div>
+
+            <!-- Free product badge if real cost <= 0 -->
+            <div id="freeProductBadge" class="hidden my-1 py-1 px-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1.5">
+              <span>🎉</span>
+              <span>Ürün Tamamen Bedavaya Geldi + Üstüne Kâr Kaldı!</span>
+            </div>
+
+            <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Mağaza Liste Fiyatı:</span>
+                <span class="font-mono font-semibold text-slate-300" id="nominalCostLabel">30.000,00 ₺</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Reel Tasarruf Oranı:</span>
+                <span class="font-mono font-bold text-brand-400" id="arbitrageDiscountPercent">%18.7 Net Kazanç</span>
+              </div>
             </div>
           </div>
+
+          <!-- KART 2: FAİZDEN KAZANILAN PARA (TASARRUF) -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-emerald-500/50 p-5 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                Faiz Arbitraj Getirisi
+              </span>
+              <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                Net Kâr
+              </span>
+            </div>
+
+            <div class="text-xs text-slate-400">Faizden Karşılanan Kısım</div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono tracking-tight my-1.5 break-words" id="totalArbitrageInterest">
+              +₺5.622,58
+            </div>
+
+            <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Aylık Taksit Tutarı:</span>
+                <span class="font-mono font-bold text-slate-200" id="monthlyInstallmentResult">5.000,00 ₺ / ay</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Vade Sonu Kalan Para:</span>
+                <span class="font-mono font-bold text-emerald-300" id="remainingBalanceResult">5.622,58 ₺</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- 60 GÜNLÜK KAZANÇ KARTI -->
-        <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-cyan-500/40 p-4 sm:p-5 shadow-xl relative overflow-hidden">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-              2 Ay Vadeli
+        <!-- GÖRSEL KARŞILAŞTIRMA & TASARRUF ÇUBUĞU -->
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-white flex items-center gap-1.5">
+              <span>📊</span>
+              <span>Ödeme Dağılımı ve Arbitraj Etkisi</span>
             </span>
-            <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-              60. GÜN
+            <span class="font-mono text-slate-400 text-[11px]" id="comparisonSummaryText">
+              Liste Fiyatının %18.7'sini faiz kazancınız ödedi!
             </span>
           </div>
 
-          <div class="text-xs text-slate-400">Net Faiz Kazancı</div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight my-1 break-words" id="profit60">
-            +₺14.432,20
+          <!-- Split Bar -->
+          <div class="w-full h-4 bg-dark-950 rounded-full overflow-hidden flex p-0.5 border border-slate-800">
+            <div id="barRealCost" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style="width: 81.3%;"></div>
+            <div id="barInterestSave" class="h-full bg-gradient-to-r from-brand-500 to-emerald-400 rounded-full transition-all duration-500 ml-0.5" style="width: 18.7%;"></div>
           </div>
 
-          <div class="pt-3 mt-3 border-t border-slate-800/80 space-y-1 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Toplam Bakiye:</span>
-              <span class="font-mono font-bold text-slate-200" id="balance60">24.432,20 ₺</span>
+          <div class="flex items-center justify-between text-[11px] font-semibold text-slate-400 pt-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+              <span>Cebinizden Çıkan: <strong class="text-white" id="barRealCostText">₺24.377,42 (%81.3)</strong></span>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Büyüme Oranı (ROI):</span>
-              <span class="font-mono font-bold text-cyan-400" id="roi60">+144.3%</span>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <span>Faiz Tasarrufu: <strong class="text-emerald-400" id="barInterestSaveText">+₺5.622,58 (%18.7)</strong></span>
             </div>
           </div>
         </div>
 
-      </div>
+        <!-- AY AY TAKSİT & BAKİYE AKIŞ TABLOSU -->
+        <div class="border border-slate-800 rounded-2xl bg-dark-900 overflow-hidden shadow-lg">
+          <button
+            type="button"
+            id="toggleInstallmentTableBtn"
+            class="w-full px-4 py-3.5 text-left text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-between transition cursor-pointer"
+          >
+            <span class="flex items-center gap-2">
+              <span>📋</span>
+              <span class="font-bold">Ay Ay Taksit ve Bakiye Akış Tablosunu İncele</span>
+              <span class="text-[11px] font-mono text-slate-500" id="tableInstallmentCountLabel">(6 Ay)</span>
+            </span>
+            <svg id="instTableChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-    </section>
+          <div id="installmentTableContainer" class="border-t border-slate-800/80 overflow-x-auto max-h-80">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-dark-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[11px]">
+                <tr>
+                  <th class="py-2.5 px-3">Taksit / Ay</th>
+                  <th class="py-2.5 px-3 text-right">Ay Başı Bakiye</th>
+                  <th class="py-2.5 px-3 text-right">Faiz Kazancı (30 Gün)</th>
+                  <th class="py-2.5 px-3 text-right">Ödenen Taksit</th>
+                  <th class="py-2.5 px-3 text-right">Kalan Bakiye</th>
+                  <th class="py-2.5 px-3 text-right">Toplam Kâr</th>
+                </tr>
+              </thead>
+              <tbody id="installmentTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-    <!-- İSTEĞE BAĞLI: GÜN GÜN DÖKÜM TABLOSU -->
-    <div class="border border-slate-800 rounded-2xl bg-dark-900 overflow-hidden shadow-lg">
-      <button
-        type="button"
-        id="toggleTableBtn"
-        class="w-full px-4 py-3 text-left text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-between transition cursor-pointer"
-      >
-        <span class="flex items-center gap-2">
-          <span>📋</span>
-          <span>Gün Gün Kazanç Tablosunu İncele (İlk 60 Gün)</span>
-        </span>
-        <svg id="tableChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+      </section>
 
-      <div id="tableContainer" class="hidden border-t border-slate-800/80 overflow-x-auto max-h-72">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead class="sticky top-0 bg-dark-950 border-b border-slate-800 text-slate-400 font-semibold uppercase">
-            <tr>
-              <th class="py-2.5 px-3">Gün</th>
-              <th class="py-2.5 px-3 text-right">Günün Kazancı</th>
-              <th class="py-2.5 px-3 text-right">Toplam Faiz</th>
-              <th class="py-2.5 px-3 text-right">Gün Sonu Bakiye</th>
-            </tr>
-          </thead>
-          <tbody id="simpleTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
-      </div>
     </div>
 
   </main>
 
+  <!-- ======================================================== -->
+  <!-- STANDART MOBİL BOTTOM NAVIGATION BAR (ALT MENÜ)          -->
+  <!-- ======================================================== -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-dark-900/95 backdrop-blur-xl border-t border-slate-800/90 shadow-2xl safe-bottom">
+    <div class="max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4 py-2 flex items-center justify-around gap-2">
+      
+      <!-- Nav Button 1: Faiz & Kazanç -->
+      <button
+        type="button"
+        id="navBtnInterest"
+        data-target-tab="interest"
+        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 cursor-pointer active:scale-95"
+      >
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        <span class="text-[11px] tracking-tight">Faiz & Getiri</span>
+      </button>
+
+      <!-- Nav Button 2: Taksit Arbitrajı -->
+      <button
+        type="button"
+        id="navBtnInstallment"
+        data-target-tab="installment"
+        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
+      >
+        <div class="relative">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span class="absolute -top-1 -right-2 flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+          </span>
+        </div>
+        <span class="text-[11px] tracking-tight">Taksit Arbitrajı</span>
+      </button>
+
+      <!-- Nav Button 3: Hızlı Oran Ayarı -->
+      <button
+        type="button"
+        id="navBtnRateQuick"
+        class="flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
+      >
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+        <span class="text-[11px] tracking-tight font-mono">%<span class="active-rate-shared">1.50</span> Oran</span>
+      </button>
+
+    </div>
+  </nav>
+
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-xs z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-brand-500 text-dark-950 font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm pointer-events-none">
+  <div id="toast" class="fixed bottom-20 right-5 left-5 sm:left-auto sm:max-w-xs z-50 transform translate-y-28 opacity-0 transition-all duration-300 bg-brand-500 text-dark-950 font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm pointer-events-none">
     <svg class="w-5 h-5 text-dark-950 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
     </svg>
     <span id="toastMsg">İşlem başarılı</span>
   </div>
 
-  <footer class="py-6 text-center text-xs text-slate-500">
+  <footer class="py-6 text-center text-xs text-slate-500 pb-20">
     <div class="flex items-center justify-center gap-2 mb-2">
       <img src="assets/engrare_logo_white.png" alt="Engrare" class="h-4 w-auto opacity-40 hover:opacity-75 transition object-contain" />
       <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Finans</span>
@@ -355,15 +743,16 @@
     <p>Engrare Finans &copy; 2026 • Frontend Only • Çerezlerde Saklanır</p>
   </footer>
 
-  <!-- Direct Inlined Execution to Guarantee 0 CDN/Browser Cache Desynchronization -->
+  <!-- Script Execution (Both Inlined for 0 CDN Cache and synced with app.js) -->
   <script>
     /**
-     * Engrare Finans - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
+     * Engrare Finans - Günlük Faiz & Taksit Arbitraj Hesaplayıcı
+     * Tüm durumlar cookies ve localStorage ile kalıcıdır.
      */
     (function () {
       'use strict';
 
-      const STORAGE_KEY = 'interest_calc_v3_pref';
+      const STORAGE_KEY = 'interest_calc_v4_pref';
 
       const state = {
         refPrincipal: 10000,
@@ -371,7 +760,13 @@
         activeDailyRate: 1.5,
         currentPrincipal: 10000,
         mode: 'compound',
-        currency: '₺'
+        currency: '₺',
+        // Taksit arbitraj state
+        installmentTotal: 30000,
+        installmentCount: 6,
+        installmentFirstPayment: 'delayed', // 'delayed' (30 gün sonra) | 'immediate' (peşin)
+        installmentMode: 'compound', // 'compound' | 'simple'
+        activeTab: 'interest' // 'interest' | 'installment'
       };
 
       function parseNumber(val) {
@@ -424,7 +819,7 @@
           try {
             localStorage.setItem(STORAGE_KEY, payload);
           } catch (e) {}
-        }, 200);
+        }, 150);
       }
 
       function formatMoney(amount, showDecimals = true) {
@@ -443,12 +838,26 @@
 
       function initApp() {
         const elements = {
+          // Tabs
+          tabContentInterest: document.getElementById('tabContentInterest'),
+          tabContentInstallment: document.getElementById('tabContentInstallment'),
+          desktopTabBtns: document.querySelectorAll('.desktop-tab-btn'),
+          navTabBtns: document.querySelectorAll('.nav-tab-btn'),
+          navBtnInterest: document.getElementById('navBtnInterest'),
+          navBtnInstallment: document.getElementById('navBtnInstallment'),
+          navBtnRateQuick: document.getElementById('navBtnRateQuick'),
+          switchAndAdjustRateBtn: document.getElementById('switchAndAdjustRateBtn'),
+
+          // Step 1: Rate
           refPrincipalInput: document.getElementById('refPrincipalInput'),
           refDailyInterestInput: document.getElementById('refDailyInterestInput'),
           calcRatePreview: document.getElementById('calcRatePreview'),
           saveRateBtn: document.getElementById('saveRateBtn'),
           displayActiveRate: document.getElementById('displayActiveRate'),
           rateInStep2Label: document.getElementById('rateInStep2Label'),
+          activeRateShared: document.querySelectorAll('.active-rate-shared'),
+
+          // Step 2: Interest Calc
           currentPrincipalInput: document.getElementById('currentPrincipalInput'),
           currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
           quickChips: document.querySelectorAll('.quick-chip'),
@@ -465,6 +874,37 @@
           tableContainer: document.getElementById('tableContainer'),
           tableChevron: document.getElementById('tableChevron'),
           simpleTableBody: document.getElementById('simpleTableBody'),
+
+          // Tab 2: Installment Arbitrage
+          installmentTotalInput: document.getElementById('installmentTotalInput'),
+          installmentTotalFormatted: document.getElementById('installmentTotalFormatted'),
+          installmentChips: document.querySelectorAll('.installment-chip'),
+          instCountBtns: document.querySelectorAll('.inst-count-btn'),
+          installmentCountInput: document.getElementById('installmentCountInput'),
+          previewMonthlyInstallment: document.getElementById('previewMonthlyInstallment'),
+          firstPayDelayedBtn: document.getElementById('firstPayDelayedBtn'),
+          firstPayImmediateBtn: document.getElementById('firstPayImmediateBtn'),
+          instModeCompoundBtn: document.getElementById('instModeCompoundBtn'),
+          instModeSimpleBtn: document.getElementById('instModeSimpleBtn'),
+          realCostResult: document.getElementById('realCostResult'),
+          nominalCostLabel: document.getElementById('nominalCostLabel'),
+          freeProductBadge: document.getElementById('freeProductBadge'),
+          arbitrageDiscountPercent: document.getElementById('arbitrageDiscountPercent'),
+          totalArbitrageInterest: document.getElementById('totalArbitrageInterest'),
+          monthlyInstallmentResult: document.getElementById('monthlyInstallmentResult'),
+          remainingBalanceResult: document.getElementById('remainingBalanceResult'),
+          barRealCost: document.getElementById('barRealCost'),
+          barInterestSave: document.getElementById('barInterestSave'),
+          comparisonSummaryText: document.getElementById('comparisonSummaryText'),
+          barRealCostText: document.getElementById('barRealCostText'),
+          barInterestSaveText: document.getElementById('barInterestSaveText'),
+          toggleInstallmentTableBtn: document.getElementById('toggleInstallmentTableBtn'),
+          installmentTableContainer: document.getElementById('installmentTableContainer'),
+          instTableChevron: document.getElementById('instTableChevron'),
+          installmentTableBody: document.getElementById('installmentTableBody'),
+          tableInstallmentCountLabel: document.getElementById('tableInstallmentCountLabel'),
+
+          // Global
           currencyButtons: document.querySelectorAll('.currency-btn'),
           currencySymbols: document.querySelectorAll('.currency-symbol'),
           resetAllBtn: document.getElementById('resetAllBtn'),
@@ -472,17 +912,108 @@
           toastMsg: document.getElementById('toastMsg')
         };
 
-        if (!elements.refPrincipalInput || !elements.currentPrincipalInput) return;
+        if (!elements.refPrincipalInput || !elements.installmentTotalInput) return;
 
         function showToast(msg) {
           if (!elements.toast || !elements.toastMsg) return;
           elements.toastMsg.textContent = msg;
-          elements.toast.classList.remove('translate-y-24', 'opacity-0');
+          elements.toast.classList.remove('translate-y-28', 'opacity-0');
           elements.toast.classList.add('translate-y-0', 'opacity-100');
           setTimeout(() => {
-            elements.toast.classList.add('translate-y-24', 'opacity-0');
+            elements.toast.classList.add('translate-y-28', 'opacity-0');
             elements.toast.classList.remove('translate-y-0', 'opacity-100');
           }, 2600);
+        }
+
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(target) {
+          state.activeTab = target;
+
+          if (target === 'installment') {
+            elements.tabContentInterest.classList.add('hidden');
+            elements.tabContentInstallment.classList.remove('hidden');
+
+            // Bottom Nav styling
+            elements.navBtnInterest.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+            elements.navBtnInterest.classList.add('text-slate-400', 'font-medium');
+            elements.navBtnInstallment.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+            elements.navBtnInstallment.classList.remove('text-slate-400', 'font-medium');
+
+            // Desktop Tab styling
+            elements.desktopTabBtns.forEach(btn => {
+              if (btn.dataset.targetTab === 'installment') {
+                btn.classList.add('text-white', 'bg-brand-600', 'shadow');
+                btn.classList.remove('text-slate-400');
+              } else {
+                btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
+                btn.classList.add('text-slate-400');
+              }
+            });
+
+            calculateInstallment();
+          } else {
+            elements.tabContentInstallment.classList.add('hidden');
+            elements.tabContentInterest.classList.remove('hidden');
+
+            // Bottom Nav styling
+            elements.navBtnInstallment.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+            elements.navBtnInstallment.classList.add('text-slate-400', 'font-medium');
+            elements.navBtnInterest.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+            elements.navBtnInterest.classList.remove('text-slate-400', 'font-medium');
+
+            // Desktop Tab styling
+            elements.desktopTabBtns.forEach(btn => {
+              if (btn.dataset.targetTab === 'interest') {
+                btn.classList.add('text-white', 'bg-brand-600', 'shadow');
+                btn.classList.remove('text-slate-400');
+              } else {
+                btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
+                btn.classList.add('text-slate-400');
+              }
+            });
+
+            calculateInterest();
+          }
+
+          persistState();
+        }
+
+        elements.navTabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.dataset.targetTab;
+            if (target) switchTab(target);
+          });
+        });
+
+        elements.desktopTabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.dataset.targetTab;
+            if (target) switchTab(target);
+          });
+        });
+
+        if (elements.navBtnRateQuick) {
+          elements.navBtnRateQuick.addEventListener('click', () => {
+            switchTab('interest');
+            elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            elements.refPrincipalInput.focus();
+          });
+        }
+
+        if (elements.switchAndAdjustRateBtn) {
+          elements.switchAndAdjustRateBtn.addEventListener('click', () => {
+            switchTab('interest');
+            elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            elements.refPrincipalInput.focus();
+          });
+        }
+
+        // --- UPDATE RATES DISPLAY ---
+        function syncRateDisplays() {
+          const rateFormatted = formatRate(state.activeDailyRate);
+          if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
+          if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
+          elements.activeRateShared.forEach(el => (el.textContent = rateFormatted));
         }
 
         function updateRatePreview() {
@@ -497,21 +1028,54 @@
         }
 
         function updateModeUI() {
-          if (!elements.modeCompoundBtn || !elements.modeSimpleBtn) return;
-          if (state.mode === 'compound') {
-            elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-            elements.modeCompoundBtn.classList.remove('text-slate-400');
-            elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-            elements.modeSimpleBtn.classList.add('text-slate-400');
-          } else {
-            elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-            elements.modeSimpleBtn.classList.remove('text-slate-400');
-            elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-            elements.modeCompoundBtn.classList.add('text-slate-400');
+          // Interest Mode UI
+          if (elements.modeCompoundBtn && elements.modeSimpleBtn) {
+            if (state.mode === 'compound') {
+              elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.modeCompoundBtn.classList.remove('text-slate-400');
+              elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.modeSimpleBtn.classList.add('text-slate-400');
+            } else {
+              elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.modeSimpleBtn.classList.remove('text-slate-400');
+              elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.modeCompoundBtn.classList.add('text-slate-400');
+            }
+          }
+
+          // Installment Mode UI
+          if (elements.instModeCompoundBtn && elements.instModeSimpleBtn) {
+            if (state.installmentMode === 'compound') {
+              elements.instModeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.instModeCompoundBtn.classList.remove('text-slate-400');
+              elements.instModeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.instModeSimpleBtn.classList.add('text-slate-400');
+            } else {
+              elements.instModeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.instModeSimpleBtn.classList.remove('text-slate-400');
+              elements.instModeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.instModeCompoundBtn.classList.add('text-slate-400');
+            }
+          }
+
+          // Installment Timing UI
+          if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
+            if (state.installmentFirstPayment === 'delayed') {
+              elements.firstPayDelayedBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.firstPayDelayedBtn.classList.remove('text-slate-400');
+              elements.firstPayImmediateBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.firstPayImmediateBtn.classList.add('text-slate-400');
+            } else {
+              elements.firstPayImmediateBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.firstPayImmediateBtn.classList.remove('text-slate-400');
+              elements.firstPayDelayedBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+              elements.firstPayDelayedBtn.classList.add('text-slate-400');
+            }
           }
         }
 
-        function calculate() {
+        // --- CALCULATION 1: INTEREST ONLY ---
+        function calculateInterest() {
           const principal = parseNumber(elements.currentPrincipalInput.value);
           state.currentPrincipal = principal;
 
@@ -567,11 +1131,11 @@
           if (elements.balance60) elements.balance60.textContent = formatMoney(res60.endBalance);
           if (elements.roi60) elements.roi60.textContent = '+' + res60.roi.toFixed(1) + '%';
 
-          renderTable(breakdown);
+          renderInterestTable(breakdown);
           persistState();
         }
 
-        function renderTable(breakdown) {
+        function renderInterestTable(breakdown) {
           if (!elements.simpleTableBody) return;
           let rowsHtml = '';
           for (let i = 0; i < breakdown.length; i++) {
@@ -597,6 +1161,177 @@
           elements.simpleTableBody.innerHTML = rowsHtml;
         }
 
+        // --- CALCULATION 2: INSTALLMENT ARBITRAGE ---
+        function calculateInstallment() {
+          const total = parseNumber(elements.installmentTotalInput.value);
+          state.installmentTotal = total;
+
+          let months = parseInt(elements.installmentCountInput.value, 10);
+          if (isNaN(months) || months < 1) months = 6;
+          if (months > 36) months = 36;
+          state.installmentCount = months;
+
+          if (elements.installmentTotalFormatted) {
+            elements.installmentTotalFormatted.textContent = formatMoney(total, false);
+          }
+          if (elements.nominalCostLabel) {
+            elements.nominalCostLabel.textContent = formatMoney(total);
+          }
+          if (elements.tableInstallmentCountLabel) {
+            elements.tableInstallmentCountLabel.textContent = '(' + months + ' Ay)';
+          }
+
+          const monthlyInstallment = months > 0 ? (total / months) : 0;
+          if (elements.previewMonthlyInstallment) {
+            elements.previewMonthlyInstallment.textContent = formatMoney(monthlyInstallment);
+          }
+          if (elements.monthlyInstallmentResult) {
+            elements.monthlyInstallmentResult.textContent = formatMoney(monthlyInstallment) + ' / ay';
+          }
+
+          // Active daily rate
+          let rate = state.activeDailyRate;
+          if (isNaN(rate) || rate <= 0) rate = 1.5;
+          const dailyRateFrac = rate / 100;
+
+          // Simulation Loop
+          let balance = total;
+          let totalInterestEarned = 0;
+          const rows = [];
+          const isDelayed = state.installmentFirstPayment === 'delayed';
+
+          // If immediate first payment, deduct 1 installment at day 0
+          if (!isDelayed) {
+            balance = Math.max(0, balance - monthlyInstallment);
+          }
+
+          for (let m = 1; m <= months; m++) {
+            const startBal = balance;
+            let monthInterest = 0;
+
+            if (startBal > 0) {
+              if (state.installmentMode === 'compound') {
+                const monthMultiplier = Math.pow(1 + dailyRateFrac, 30);
+                monthInterest = startBal * (monthMultiplier - 1);
+              } else {
+                monthInterest = startBal * (dailyRateFrac * 30);
+              }
+            }
+
+            const balWithInterest = startBal + monthInterest;
+            totalInterestEarned += monthInterest;
+
+            // Payment for this month
+            // If immediate, m = months had payment at start, so months-th payment was paid at month 0?
+            // Standard: If immediate: 1st installment paid now (month 0). Remaining (months - 1) paid at end of months 1..(months-1).
+            // At month 'months', all installments are already settled.
+            let pay = monthlyInstallment;
+            if (!isDelayed && m === months) {
+              pay = 0; // already paid 1st upfront
+            }
+
+            const endBal = Math.max(0, balWithInterest - pay);
+            balance = endBal;
+
+            rows.push({
+              month: m,
+              startBal,
+              monthInterest,
+              payment: pay,
+              endBal,
+              cumulativeInterest: totalInterestEarned
+            });
+          }
+
+          // Final metrics
+          const realCost = Math.max(0, total - totalInterestEarned);
+          const remainingBalance = balance;
+          const discountPct = total > 0 ? (totalInterestEarned / total) * 100 : 0;
+
+          // Display hero metrics
+          if (elements.realCostResult) {
+            elements.realCostResult.textContent = formatMoney(realCost);
+          }
+          if (elements.totalArbitrageInterest) {
+            elements.totalArbitrageInterest.textContent = '+' + formatMoney(totalInterestEarned);
+          }
+          if (elements.remainingBalanceResult) {
+            elements.remainingBalanceResult.textContent = formatMoney(remainingBalance);
+          }
+          if (elements.arbitrageDiscountPercent) {
+            elements.arbitrageDiscountPercent.textContent = '%' + discountPct.toFixed(1) + ' Net Kazanç';
+          }
+
+          // Free Product Badge
+          if (elements.freeProductBadge) {
+            if (totalInterestEarned >= total && total > 0) {
+              elements.freeProductBadge.classList.remove('hidden');
+              elements.realCostResult.classList.add('text-emerald-400');
+              elements.realCostResult.classList.remove('text-white');
+            } else {
+              elements.freeProductBadge.classList.add('hidden');
+              elements.realCostResult.classList.remove('text-emerald-400');
+              elements.realCostResult.classList.add('text-white');
+            }
+          }
+
+          // Visual Progress Bar
+          const realCostPctClamped = Math.max(0, Math.min(100, total > 0 ? (realCost / total) * 100 : 100));
+          const interestPctClamped = Math.max(0, Math.min(100, 100 - realCostPctClamped));
+
+          if (elements.barRealCost && elements.barInterestSave) {
+            elements.barRealCost.style.width = realCostPctClamped + '%';
+            elements.barInterestSave.style.width = interestPctClamped + '%';
+          }
+          if (elements.comparisonSummaryText) {
+            elements.comparisonSummaryText.textContent = 'Liste fiyatının %' + discountPct.toFixed(1) + "'ini faiz kazancınız ödedi!";
+          }
+          if (elements.barRealCostText) {
+            elements.barRealCostText.textContent = formatMoney(realCost) + ' (%' + realCostPctClamped.toFixed(1) + ')';
+          }
+          if (elements.barInterestSaveText) {
+            elements.barInterestSaveText.textContent = '+' + formatMoney(totalInterestEarned) + ' (%' + discountPct.toFixed(1) + ')';
+          }
+
+          // Render Table
+          renderInstallmentTable(rows, total, totalInterestEarned, realCost, months);
+          persistState();
+        }
+
+        function renderInstallmentTable(rows, total, totalInterest, realCost, months) {
+          if (!elements.installmentTableBody) return;
+          let html = '';
+
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i];
+            const isLast = (i === rows.length - 1);
+            let rowClass = 'hover:bg-dark-850 transition-colors';
+            if (isLast) rowClass += ' highlight-row-30 font-bold';
+
+            html += '<tr class="' + rowClass + '">' +
+              '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' + r.month + '. Ay (' + (r.month * 30) + '. Gün)' + '</td>' +
+              '<td class="py-2.5 px-3 text-right text-slate-300">' + formatMoney(r.startBal) + '</td>' +
+              '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(r.monthInterest) + '</td>' +
+              '<td class="py-2.5 px-3 text-right text-rose-400">-' + formatMoney(r.payment) + '</td>' +
+              '<td class="py-2.5 px-3 text-right text-white font-bold">' + formatMoney(r.endBal) + '</td>' +
+              '<td class="py-2.5 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(r.cumulativeInterest) + '</td>' +
+              '</tr>';
+          }
+
+          // Summary Footer Row
+          html += '<tr class="bg-dark-950 font-bold text-white border-t-2 border-slate-700">' +
+            '<td class="py-3 px-3">TOPLAM ÖZET</td>' +
+            '<td class="py-3 px-3 text-right text-slate-400">' + formatMoney(total) + '</td>' +
+            '<td class="py-3 px-3 text-right text-emerald-400">+' + formatMoney(totalInterest) + '</td>' +
+            '<td class="py-3 px-3 text-right text-rose-400">-' + formatMoney(total) + '</td>' +
+            '<td class="py-3 px-3 text-right text-brand-400">Reel: ' + formatMoney(realCost) + '</td>' +
+            '<td class="py-3 px-3 text-right text-emerald-400">Net Kâr: +' + formatMoney(totalInterest) + '</td>' +
+            '</tr>';
+
+          elements.installmentTableBody.innerHTML = html;
+        }
+
+        // --- LOAD & PERSIST STATE ---
         function loadPersistedState() {
           let raw = getCookie(STORAGE_KEY);
           if (!raw) {
@@ -621,13 +1356,31 @@
             if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
             if (data.currency) state.currency = data.currency;
 
+            // Installment properties
+            if (data.installmentTotal !== undefined && !isNaN(data.installmentTotal)) {
+              state.installmentTotal = Number(data.installmentTotal);
+            }
+            if (data.installmentCount !== undefined && !isNaN(data.installmentCount)) {
+              state.installmentCount = Number(data.installmentCount);
+            }
+            if (data.installmentFirstPayment === 'delayed' || data.installmentFirstPayment === 'immediate') {
+              state.installmentFirstPayment = data.installmentFirstPayment;
+            }
+            if (data.installmentMode === 'compound' || data.installmentMode === 'simple') {
+              state.installmentMode = data.installmentMode;
+            }
+            if (data.activeTab === 'interest' || data.activeTab === 'installment') {
+              state.activeTab = data.activeTab;
+            }
+
+            // Sync inputs
             elements.refPrincipalInput.value = state.refPrincipal;
             elements.refDailyInterestInput.value = state.refDailyInterest;
             elements.currentPrincipalInput.value = state.currentPrincipal;
+            elements.installmentTotalInput.value = state.installmentTotal;
+            elements.installmentCountInput.value = state.installmentCount;
 
-            const rateStr = formatRate(state.activeDailyRate);
-            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
-            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+            syncRateDisplays();
 
             elements.currencyButtons.forEach(b => {
               if (b.dataset.currency === state.currency) {
@@ -640,6 +1393,17 @@
             });
             elements.currencySymbols.forEach(s => (s.textContent = state.currency));
 
+            // Sync active installment count button
+            elements.instCountBtns.forEach(b => {
+              if (parseInt(b.dataset.months, 10) === state.installmentCount) {
+                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              } else {
+                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              }
+            });
+
             updateModeUI();
             return true;
           } catch (e) {
@@ -647,12 +1411,28 @@
           }
         }
 
+        // --- EVENT LISTENERS ---
         ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
           elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
           elements.refDailyInterestInput.addEventListener(evtName, updateRatePreview);
-          elements.currentPrincipalInput.addEventListener(evtName, calculate);
+          elements.currentPrincipalInput.addEventListener(evtName, calculateInterest);
+          elements.installmentTotalInput.addEventListener(evtName, calculateInstallment);
+          elements.installmentCountInput.addEventListener(evtName, () => {
+            const months = parseInt(elements.installmentCountInput.value, 10);
+            elements.instCountBtns.forEach(b => {
+              if (parseInt(b.dataset.months, 10) === months) {
+                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              } else {
+                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              }
+            });
+            calculateInstallment();
+          });
         });
 
+        // Save Rate Button
         if (elements.saveRateBtn) {
           elements.saveRateBtn.addEventListener('click', () => {
             const p = parseNumber(elements.refPrincipalInput.value);
@@ -669,32 +1449,74 @@
             state.refDailyInterest = r;
             state.activeDailyRate = calculatedRate;
 
-            const rateFormatted = formatRate(calculatedRate);
-            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
-            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
+            syncRateDisplays();
             if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calculatedRate.toFixed(4);
 
             elements.currentPrincipalInput.value = p;
             state.currentPrincipal = p;
 
-            calculate();
-            showToast('✓ Faiz oranı %' + rateFormatted + ' olarak kaydedildi!');
+            calculateInterest();
+            calculateInstallment();
+            showToast('✓ Faiz oranı %' + formatRate(calculatedRate) + ' olarak kaydedildi!');
           });
         }
 
+        // Quick Chips for Interest
         elements.quickChips.forEach(chip => {
           chip.addEventListener('click', () => {
             const amt = parseFloat(chip.dataset.amt);
             elements.currentPrincipalInput.value = amt;
-            calculate();
+            calculateInterest();
           });
         });
 
+        // Quick Chips for Installment
+        elements.installmentChips.forEach(chip => {
+          chip.addEventListener('click', () => {
+            const amt = parseFloat(chip.dataset.amt);
+            elements.installmentTotalInput.value = amt;
+            calculateInstallment();
+          });
+        });
+
+        // Installment Month Buttons
+        elements.instCountBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const months = parseInt(btn.dataset.months, 10);
+            elements.installmentCountInput.value = months;
+
+            elements.instCountBtns.forEach(b => {
+              b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+              b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+            });
+            btn.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            btn.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+
+            calculateInstallment();
+          });
+        });
+
+        // Installment Timing Buttons
+        if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
+          elements.firstPayDelayedBtn.addEventListener('click', () => {
+            state.installmentFirstPayment = 'delayed';
+            updateModeUI();
+            calculateInstallment();
+          });
+
+          elements.firstPayImmediateBtn.addEventListener('click', () => {
+            state.installmentFirstPayment = 'immediate';
+            updateModeUI();
+            calculateInstallment();
+          });
+        }
+
+        // Interest Modes
         if (elements.modeCompoundBtn) {
           elements.modeCompoundBtn.addEventListener('click', () => {
             state.mode = 'compound';
             updateModeUI();
-            calculate();
+            calculateInterest();
           });
         }
 
@@ -702,10 +1524,28 @@
           elements.modeSimpleBtn.addEventListener('click', () => {
             state.mode = 'simple';
             updateModeUI();
-            calculate();
+            calculateInterest();
           });
         }
 
+        // Installment Modes
+        if (elements.instModeCompoundBtn) {
+          elements.instModeCompoundBtn.addEventListener('click', () => {
+            state.installmentMode = 'compound';
+            updateModeUI();
+            calculateInstallment();
+          });
+        }
+
+        if (elements.instModeSimpleBtn) {
+          elements.instModeSimpleBtn.addEventListener('click', () => {
+            state.installmentMode = 'simple';
+            updateModeUI();
+            calculateInstallment();
+          });
+        }
+
+        // Toggle Tables
         if (elements.toggleTableBtn && elements.tableContainer) {
           elements.toggleTableBtn.addEventListener('click', () => {
             const isHidden = elements.tableContainer.classList.toggle('hidden');
@@ -715,6 +1555,16 @@
           });
         }
 
+        if (elements.toggleInstallmentTableBtn && elements.installmentTableContainer) {
+          elements.toggleInstallmentTableBtn.addEventListener('click', () => {
+            const isHidden = elements.installmentTableContainer.classList.toggle('hidden');
+            if (elements.instTableChevron) {
+              elements.instTableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+          });
+        }
+
+        // Currency buttons
         elements.currencyButtons.forEach(btn => {
           btn.addEventListener('click', () => {
             elements.currencyButtons.forEach(b => {
@@ -726,10 +1576,13 @@
 
             state.currency = btn.dataset.currency;
             elements.currencySymbols.forEach(s => (s.textContent = state.currency));
-            calculate();
+
+            calculateInterest();
+            calculateInstallment();
           });
         });
 
+        // Reset All
         if (elements.resetAllBtn) {
           elements.resetAllBtn.addEventListener('click', () => {
             eraseCookie(STORAGE_KEY);
@@ -743,15 +1596,29 @@
             state.currentPrincipal = 10000;
             state.mode = 'compound';
             state.currency = '₺';
+            state.installmentTotal = 30000;
+            state.installmentCount = 6;
+            state.installmentFirstPayment = 'delayed';
+            state.installmentMode = 'compound';
+            state.activeTab = 'interest';
 
             elements.refPrincipalInput.value = 10000;
             elements.refDailyInterestInput.value = 150;
             elements.currentPrincipalInput.value = 10000;
+            elements.installmentTotalInput.value = 30000;
+            elements.installmentCountInput.value = 6;
 
-            const rateStr = formatRate(state.activeDailyRate);
-            if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateStr;
-            if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateStr;
+            elements.instCountBtns.forEach(b => {
+              if (parseInt(b.dataset.months, 10) === 6) {
+                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              } else {
+                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+              }
+            });
 
+            syncRateDisplays();
             updateRatePreview();
             updateModeUI();
 
@@ -766,14 +1633,21 @@
             });
             elements.currencySymbols.forEach(s => (s.textContent = '₺'));
 
-            calculate();
+            switchTab('interest');
+            calculateInterest();
+            calculateInstallment();
             showToast('Tüm değerler ve çerezler sıfırlandı.');
           });
         }
 
+        // Initialize state & calculations
         loadPersistedState();
         updateRatePreview();
-        calculate();
+        syncRateDisplays();
+        updateModeUI();
+        switchTab(state.activeTab || 'interest');
+        calculateInterest();
+        calculateInstallment();
       }
 
       if (document.getElementById('refPrincipalInput')) {
