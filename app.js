@@ -1,24 +1,23 @@
 /**
- * InterestCalc - Minimalist ve Hızlı Faiz Hesaplayıcı
- * 1. Anapara ve günlük faiz girilerek oran hesaplanır ve kaydedilir.
- * 2. Sonrasında sadece o anki anapara yazılarak 30 ve 60 günlük kazanç anında hesaplanır.
- * Tüm değerler çerezlerde (cookies) ve localStorage'da saklanır.
+ * InterestCalc - Minimalist, Hızlı ve Güvenilir Faiz Hesaplayıcı
+ * 1. Anapara ve günlük kazançtan faiz oranı hesaplanır ve kaydedilir.
+ * 2. Sonraki tüm hesaplamalar sadece o anki anapara yazılarak bu oran üzerinden anında yapılır.
+ * Değerler çerezlerde (cookies) ve localStorage'da saklanır.
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'interest_calc_pref';
+  const STORAGE_KEY = 'interest_calc_v2_pref';
 
-  // --- STATE ---
+  // --- APPLICATION STATE ---
   const state = {
     refPrincipal: 10000,
     refDailyInterest: 150,
     activeDailyRate: 1.5,
     currentPrincipal: 10000,
     mode: 'compound', // 'compound' | 'simple'
-    currency: '₺',
-    rateFormOpen: true
+    currency: '₺'
   };
 
   // --- DOM ELEMENTS ---
@@ -29,19 +28,17 @@
     calcRatePreview: document.getElementById('calcRatePreview'),
     saveRateBtn: document.getElementById('saveRateBtn'),
     displayActiveRate: document.getElementById('displayActiveRate'),
-    savedRateBadge: document.getElementById('savedRateBadge'),
-    rateSectionHeader: document.getElementById('rateSectionHeader'),
-    rateFormContainer: document.getElementById('rateFormContainer'),
-    rateChevron: document.getElementById('rateChevron'),
 
     // Step 2: Current Principal & Calculation
+    rateInStep2Label: document.getElementById('rateInStep2Label'),
     currentPrincipalInput: document.getElementById('currentPrincipalInput'),
+    currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
     quickChips: document.querySelectorAll('.quick-chip'),
     modeCompoundBtn: document.getElementById('modeCompoundBtn'),
     modeSimpleBtn: document.getElementById('modeSimpleBtn'),
     dailyProfitResult: document.getElementById('dailyProfitResult'),
 
-    // Results
+    // Step 2: 30 & 60 Days Output
     profit30: document.getElementById('profit30'),
     balance30: document.getElementById('balance30'),
     roi30: document.getElementById('roi30'),
@@ -55,7 +52,7 @@
     tableChevron: document.getElementById('tableChevron'),
     simpleTableBody: document.getElementById('simpleTableBody'),
 
-    // Header controls & Toast
+    // Header & Currency & Toast
     currencyButtons: document.querySelectorAll('.currency-btn'),
     currencySymbols: document.querySelectorAll('.currency-symbol'),
     resetAllBtn: document.getElementById('resetAllBtn'),
@@ -65,7 +62,30 @@
 
   let saveTimer = null;
 
-  // --- COOKIE HELPERS ---
+  // --- SMART NUMBER PARSER (Handles Turkish comma & thousands dot) ---
+  function parseNumber(val) {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    let str = String(val).trim().replace(/\s+/g, '');
+    
+    // Turkish thousand dot and comma decimal: 10.000,50 -> 10000.50
+    if (str.includes('.') && str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes(',')) {
+      // 150,5 -> 150.5
+      str = str.replace(',', '.');
+    } else if (str.includes('.')) {
+      // 10.000 -> 10000 if 3 digits follow and not a small decimal like 1.5
+      const parts = str.split('.');
+      if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
+        str = parts[0] + parts[1];
+      }
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  // --- COOKIE & STORAGE HELPERS ---
   function setCookie(name, value, days = 365) {
     try {
       const d = new Date();
@@ -89,7 +109,6 @@
     } catch (e) {}
   }
 
-  // Save state to cookies & localStorage
   function persistState() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
@@ -98,10 +117,9 @@
       try {
         localStorage.setItem(STORAGE_KEY, payload);
       } catch (e) {}
-    }, 150);
+    }, 200);
   }
 
-  // Load state from cookies or localStorage
   function loadPersistedState() {
     let raw = getCookie(STORAGE_KEY);
     if (!raw) {
@@ -115,21 +133,27 @@
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return false;
 
-      if (data.refPrincipal !== undefined) state.refPrincipal = Number(data.refPrincipal);
-      if (data.refDailyInterest !== undefined) state.refDailyInterest = Number(data.refDailyInterest);
-      if (data.activeDailyRate !== undefined) state.activeDailyRate = Number(data.activeDailyRate);
-      if (data.currentPrincipal !== undefined) state.currentPrincipal = Number(data.currentPrincipal);
+      if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
+      if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
+      if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
+        state.activeDailyRate = Number(data.activeDailyRate);
+      }
+      if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
+        state.currentPrincipal = Number(data.currentPrincipal);
+      }
       if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
       if (data.currency) state.currency = data.currency;
-      if (data.rateFormOpen !== undefined) state.rateFormOpen = Boolean(data.rateFormOpen);
 
-      // Sync inputs
+      // Populate input elements
       elements.refPrincipalInput.value = state.refPrincipal;
       elements.refDailyInterestInput.value = state.refDailyInterest;
       elements.currentPrincipalInput.value = state.currentPrincipal;
-      elements.displayActiveRate.textContent = state.activeDailyRate.toFixed(4).replace(/\.?0+$/, '') || '0';
+      
+      const rateStr = formatRate(state.activeDailyRate);
+      elements.displayActiveRate.textContent = rateStr;
+      elements.rateInStep2Label.textContent = rateStr;
 
-      // Sync Currency UI
+      // Currency UI
       elements.currencyButtons.forEach(b => {
         if (b.dataset.currency === state.currency) {
           b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
@@ -141,30 +165,14 @@
       });
       elements.currencySymbols.forEach(s => (s.textContent = state.currency));
 
-      // Sync Mode UI
       updateModeUI();
-
-      // Sync accordion open/close state
-      setRateFormVisibility(state.rateFormOpen);
-
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  // --- NOTIFICATION ---
-  function showToast(msg) {
-    elements.toastMsg.textContent = msg;
-    elements.toast.classList.remove('translate-y-24', 'opacity-0');
-    elements.toast.classList.add('translate-y-0', 'opacity-100');
-    setTimeout(() => {
-      elements.toast.classList.add('translate-y-24', 'opacity-0');
-      elements.toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2500);
-  }
-
-  // --- MONEY FORMATTER ---
+  // --- FORMATTERS ---
   function formatMoney(amount, showDecimals = true) {
     if (isNaN(amount) || amount === null) return `${state.currency}0`;
     const decimals = showDecimals ? 2 : 0;
@@ -174,10 +182,25 @@
     })}`;
   }
 
-  // --- RATE PREVIEW IN STEP 1 ---
+  function formatRate(rate) {
+    if (isNaN(rate) || rate === null) return '0.00';
+    return Number(rate).toFixed(4).replace(/\.?0+$/, '') || '0';
+  }
+
+  function showToast(msg) {
+    elements.toastMsg.textContent = msg;
+    elements.toast.classList.remove('translate-y-24', 'opacity-0');
+    elements.toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+      elements.toast.classList.add('translate-y-24', 'opacity-0');
+      elements.toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2600);
+  }
+
+  // --- STEP 1: RATE PREVIEW ---
   function updateRatePreview() {
-    const p = parseFloat(elements.refPrincipalInput.value) || 0;
-    const r = parseFloat(elements.refDailyInterestInput.value) || 0;
+    const p = parseNumber(elements.refPrincipalInput.value);
+    const r = parseNumber(elements.refDailyInterestInput.value);
     if (p > 0) {
       const calcRate = (r / p) * 100;
       elements.calcRatePreview.textContent = `%${calcRate.toFixed(4)}`;
@@ -186,20 +209,7 @@
     }
   }
 
-  // --- TOGGLE STEP 1 ACCORDION ---
-  function setRateFormVisibility(open) {
-    state.rateFormOpen = open;
-    if (open) {
-      elements.rateFormContainer.classList.remove('hidden');
-      elements.rateChevron.style.transform = 'rotate(0deg)';
-    } else {
-      elements.rateFormContainer.classList.add('hidden');
-      elements.rateChevron.style.transform = 'rotate(-90deg)';
-    }
-    persistState();
-  }
-
-  // --- MODE UI ---
+  // --- STEP 2: MODE UI ---
   function updateModeUI() {
     if (state.mode === 'compound') {
       elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
@@ -214,12 +224,24 @@
     }
   }
 
-  // --- CORE CALCULATION ENGINE ---
+  // --- STEP 2: REAL-TIME CALCULATION ENGINE ---
   function calculate() {
-    const principal = Math.max(0, state.currentPrincipal);
-    const dailyRateFrac = Math.max(0, state.activeDailyRate) / 100;
+    const principal = parseNumber(elements.currentPrincipalInput.value);
+    state.currentPrincipal = principal;
 
-    // Daily Profit Preview for Day 1
+    // Make sure we have an active rate (default to 1.5 if 0)
+    let rate = state.activeDailyRate;
+    if (isNaN(rate) || rate <= 0) {
+      rate = 1.5;
+      state.activeDailyRate = 1.5;
+    }
+
+    const dailyRateFrac = rate / 100;
+
+    // Display formatted principal
+    elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
+
+    // 1 Day Return
     const oneDayProfit = principal * dailyRateFrac;
     elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
 
@@ -231,12 +253,12 @@
       let dayProfit = 0;
 
       if (state.mode === 'compound') {
-        // Bileşik: O anki bakiye üzerinden kâr eklenir
+        // Bileşik: O anki bakiye üzerinden kâr
         dayProfit = currentBalance * dailyRateFrac;
         currentBalance += dayProfit;
         cumulativeProfit = currentBalance - principal;
       } else {
-        // Basit: Her gün başlangıç anaparası üzerinden sabit kâr
+        // Basit: Başlangıç anaparası üzerinden sabit kâr
         dayProfit = principal * dailyRateFrac;
         cumulativeProfit += dayProfit;
         currentBalance = principal + cumulativeProfit;
@@ -251,13 +273,13 @@
       });
     }
 
-    // 30 Days Result
+    // 30 Days Output
     const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
     elements.profit30.textContent = `+${formatMoney(res30.cumulativeProfit)}`;
     elements.balance30.textContent = formatMoney(res30.endBalance);
     elements.roi30.textContent = `+${res30.roi.toFixed(1)}%`;
 
-    // 60 Days Result
+    // 60 Days Output
     const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
     elements.profit60.textContent = `+${formatMoney(res60.cumulativeProfit)}`;
     elements.balance60.textContent = formatMoney(res60.endBalance);
@@ -266,7 +288,7 @@
     // Render Compact Table
     renderTable(breakdown);
 
-    // Save to cookies & storage
+    // Persist
     persistState();
   }
 
@@ -280,10 +302,10 @@
 
       if (item.day === 30) {
         rowClass += ' highlight-row-30';
-        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/20 text-brand-300 font-bold">1 Ay</span>';
+        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
       } else if (item.day === 60) {
         rowClass += ' highlight-row-60';
-        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 font-bold">2 Ay</span>';
+        badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
       }
 
       rowsHtml += `
@@ -298,54 +320,52 @@
     elements.simpleTableBody.innerHTML = rowsHtml;
   }
 
-  // --- EVENT HANDLERS ---
+  // --- EVENT LISTENERS ---
   function setupEvents() {
-    // Step 1: Inputs
+    // Step 1: Real-time Rate Preview as user types
     elements.refPrincipalInput.addEventListener('input', updateRatePreview);
     elements.refDailyInterestInput.addEventListener('input', updateRatePreview);
 
-    // Step 1: Save Rate Button
+    // Step 1: "Faiz Oranını Hesapla & Kaydet" Button
     elements.saveRateBtn.addEventListener('click', () => {
-      const p = parseFloat(elements.refPrincipalInput.value) || 0;
-      const r = parseFloat(elements.refDailyInterestInput.value) || 0;
+      const p = parseNumber(elements.refPrincipalInput.value);
+      const r = parseNumber(elements.refDailyInterestInput.value);
 
       if (p <= 0) {
         showToast('Lütfen geçerli bir anapara girin.');
+        elements.refPrincipalInput.focus();
         return;
       }
 
+      const calculatedRate = (r / p) * 100;
       state.refPrincipal = p;
       state.refDailyInterest = r;
-      state.activeDailyRate = (r / p) * 100;
+      state.activeDailyRate = calculatedRate;
 
-      const rateStr = state.activeDailyRate.toFixed(4).replace(/\.?0+$/, '') || '0';
-      elements.displayActiveRate.textContent = rateStr;
+      const rateFormatted = formatRate(calculatedRate);
+      elements.displayActiveRate.textContent = rateFormatted;
+      elements.rateInStep2Label.textContent = rateFormatted;
+      elements.calcRatePreview.textContent = `%${calculatedRate.toFixed(4)}`;
 
-      showToast(`Faiz oranı %${rateStr} olarak kaydedildi!`);
+      // Automatically sync Step 2's principal with this principal
+      elements.currentPrincipalInput.value = p;
+      state.currentPrincipal = p;
 
-      // Optionally close accordion to keep UI clean and focus on calculation
-      setRateFormVisibility(false);
+      // Run calculation immediately
+      calculate();
 
-      // Re-calculate with current principal
+      showToast(`✓ Faiz oranı %${rateFormatted} olarak kaydedildi!`);
+    });
+
+    // Step 2: Instant calculation on every keystroke
+    elements.currentPrincipalInput.addEventListener('input', () => {
       calculate();
     });
 
-    // Accordion toggle on header
-    elements.rateSectionHeader.addEventListener('click', () => {
-      setRateFormVisibility(elements.rateFormContainer.classList.contains('hidden'));
-    });
-
-    // Step 2: Current Principal Input
-    elements.currentPrincipalInput.addEventListener('input', (e) => {
-      state.currentPrincipal = Math.max(0, parseFloat(e.target.value) || 0);
-      calculate();
-    });
-
-    // Quick Chips
+    // Quick Amount Chips
     elements.quickChips.forEach(chip => {
       chip.addEventListener('click', () => {
         const amt = parseFloat(chip.dataset.amt);
-        state.currentPrincipal = amt;
         elements.currentPrincipalInput.value = amt;
         calculate();
       });
@@ -364,13 +384,13 @@
       calculate();
     });
 
-    // Toggle Table
+    // Table Accordion Toggle
     elements.toggleTableBtn.addEventListener('click', () => {
       const isHidden = elements.tableContainer.classList.toggle('hidden');
       elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
     });
 
-    // Currency Selector
+    // Currency Switcher
     elements.currencyButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         elements.currencyButtons.forEach(b => {
@@ -399,15 +419,17 @@
       state.currentPrincipal = 10000;
       state.mode = 'compound';
       state.currency = '₺';
-      state.rateFormOpen = true;
 
       elements.refPrincipalInput.value = 10000;
       elements.refDailyInterestInput.value = 150;
       elements.currentPrincipalInput.value = 10000;
-      elements.displayActiveRate.textContent = '1.5';
+      
+      const rateStr = formatRate(state.activeDailyRate);
+      elements.displayActiveRate.textContent = rateStr;
+      elements.rateInStep2Label.textContent = rateStr;
+      
       updateRatePreview();
       updateModeUI();
-      setRateFormVisibility(true);
 
       elements.currencyButtons.forEach((b, idx) => {
         if (idx === 0) {
@@ -421,11 +443,11 @@
       elements.currencySymbols.forEach(s => (s.textContent = '₺'));
 
       calculate();
-      showToast('Tüm değerler ve çerezler sıfırlandı.');
+      showToast('Tüm değerler ve çerezler varsayılana sıfırlandı.');
     });
   }
 
-  // --- INIT ---
+  // --- INITIALIZATION ---
   function init() {
     setupEvents();
     loadPersistedState();
