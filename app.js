@@ -1,10 +1,14 @@
 /**
  * InterestCalc - Frontend Faiz ve Getiri Hesaplama Uygulaması
  * Tamamen istemci taraflı (Client-side / Vanilla JS + Chart.js)
+ * Çerezler (Cookies) & LocalStorage kalıcılığı ve Mobil Uyumluluk destekli
  */
 
 (function () {
   'use strict';
+
+  const COOKIE_NAME = 'interest_calc_saved_state';
+  const STORAGE_KEY = 'interest_calc_saved_state';
 
   // --- STATE ---
   const state = {
@@ -83,7 +87,7 @@
     breakdownTableBody: document.getElementById('breakdownTableBody'),
     exportCsvBtn: document.getElementById('exportCsvBtn'),
 
-    // Top actions
+    // Top actions & Toast
     copyLinkBtn: document.getElementById('copyLinkBtn'),
     resetBtn: document.getElementById('resetBtn'),
     toast: document.getElementById('toast'),
@@ -92,6 +96,156 @@
 
   let chartInstance = null;
   let cachedProjection = [];
+  let saveDebounceTimer = null;
+
+  // --- COOKIE & STORAGE HELPERS ---
+  function setCookie(name, value, days = 365) {
+    try {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    } catch (e) {
+      console.warn('Cookie set error:', e);
+    }
+  }
+
+  function getCookie(name) {
+    try {
+      const cookies = document.cookie.split('; ');
+      for (let i = 0; i < cookies.length; i++) {
+        const parts = cookies[i].split('=');
+        if (parts[0] === name) {
+          return decodeURIComponent(parts.slice(1).join('='));
+        }
+      }
+    } catch (e) {
+      console.warn('Cookie get error:', e);
+    }
+    return null;
+  }
+
+  function eraseCookie(name) {
+    try {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+    } catch (e) {
+      console.warn('Cookie erase error:', e);
+    }
+  }
+
+  function saveSettings() {
+    clearTimeout(saveDebounceTimer);
+    saveDebounceTimer = setTimeout(() => {
+      const data = {
+        principal: state.principal,
+        dailyAmount: state.dailyAmount,
+        dailyRate: state.dailyRate,
+        mode: state.mode,
+        currency: state.currency,
+        taxRate: state.taxRate,
+        reinvestRate: state.reinvestRate,
+        extraDaily: state.extraDaily,
+        customDay: state.customDay,
+        chartDays: state.chartDays,
+        tableFilterDays: state.tableFilterDays,
+        lastEdited: state.lastEdited
+      };
+      const jsonStr = JSON.stringify(data);
+      setCookie(COOKIE_NAME, jsonStr, 365);
+      try {
+        localStorage.setItem(STORAGE_KEY, jsonStr);
+      } catch (e) {}
+    }, 200);
+  }
+
+  function loadSettingsFromStorage() {
+    let jsonStr = getCookie(COOKIE_NAME);
+    if (!jsonStr) {
+      try {
+        jsonStr = localStorage.getItem(STORAGE_KEY);
+      } catch (e) {}
+    }
+    if (!jsonStr) return false;
+
+    try {
+      const data = JSON.parse(jsonStr);
+      if (!data || typeof data !== 'object') return false;
+
+      if (data.principal !== undefined && !isNaN(data.principal)) state.principal = Number(data.principal);
+      if (data.dailyAmount !== undefined && !isNaN(data.dailyAmount)) state.dailyAmount = Number(data.dailyAmount);
+      if (data.dailyRate !== undefined && !isNaN(data.dailyRate)) state.dailyRate = Number(data.dailyRate);
+      if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
+      if (data.currency) state.currency = data.currency;
+      if (data.taxRate !== undefined && !isNaN(data.taxRate)) state.taxRate = Number(data.taxRate);
+      if (data.reinvestRate !== undefined && !isNaN(data.reinvestRate)) state.reinvestRate = Number(data.reinvestRate);
+      if (data.extraDaily !== undefined && !isNaN(data.extraDaily)) state.extraDaily = Number(data.extraDaily);
+      if (data.customDay !== undefined && !isNaN(data.customDay)) state.customDay = Number(data.customDay);
+      if (data.chartDays !== undefined && !isNaN(data.chartDays)) state.chartDays = Number(data.chartDays);
+      if (data.tableFilterDays !== undefined && !isNaN(data.tableFilterDays)) state.tableFilterDays = Number(data.tableFilterDays);
+      if (data.lastEdited) state.lastEdited = data.lastEdited;
+
+      // Sync form controls
+      elements.principalInput.value = state.principal;
+      elements.dailyAmountInput.value = state.dailyAmount;
+      elements.dailyRateInput.value = state.dailyRate;
+
+      if (state.mode === 'simple') {
+        elements.modeSimple.checked = true;
+        elements.simpleModeLabel.classList.add('active');
+        elements.compoundModeLabel.classList.remove('active');
+        elements.reinvestContainer.classList.add('opacity-40', 'pointer-events-none');
+      } else {
+        elements.modeCompound.checked = true;
+        elements.compoundModeLabel.classList.add('active');
+        elements.simpleModeLabel.classList.remove('active');
+        elements.reinvestContainer.classList.remove('opacity-40', 'pointer-events-none');
+      }
+
+      elements.taxRateInput.value = state.taxRate;
+      elements.taxRateLabel.textContent = `%${state.taxRate}`;
+      elements.reinvestRateInput.value = state.reinvestRate;
+      elements.reinvestRateLabel.textContent = `%${state.reinvestRate}`;
+      elements.extraDailyInput.value = state.extraDaily;
+      elements.customDayInput.value = state.customDay;
+
+      // Currency UI
+      elements.currencyButtons.forEach(b => {
+        if (b.dataset.currency === state.currency) {
+          b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.remove('text-slate-400');
+        } else {
+          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.add('text-slate-400');
+        }
+      });
+      elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+
+      // Chart Period Buttons UI
+      elements.chartPeriodButtons.forEach(b => {
+        if (parseInt(b.dataset.days, 10) === state.chartDays) {
+          b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.remove('text-slate-400');
+        } else {
+          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.add('text-slate-400');
+        }
+      });
+
+      // Table Filter Buttons UI
+      elements.tableFilterButtons.forEach(b => {
+        if (parseInt(b.dataset.filter, 10) === state.tableFilterDays) {
+          b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.remove('text-slate-400');
+        } else {
+          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.add('text-slate-400');
+        }
+      });
+
+      return true;
+    } catch (e) {
+      console.warn('Storage parsing error:', e);
+      return false;
+    }
+  }
 
   // --- FORMATTING HELPERS ---
   function formatMoney(amount, showDecimals = true) {
@@ -102,11 +256,6 @@
       maximumFractionDigits: decimals
     });
     return `${state.currency}${formatted}`;
-  }
-
-  function formatPercent(value) {
-    if (isNaN(value)) return '%0.00';
-    return `%${Number(value).toFixed(2)}`;
   }
 
   function formatDate(daysFromNow) {
@@ -120,12 +269,12 @@
 
   function showToast(message) {
     elements.toastMsg.textContent = message;
-    elements.toast.classList.remove('translate-y-20', 'opacity-0');
+    elements.toast.classList.remove('translate-y-24', 'opacity-0');
     elements.toast.classList.add('translate-y-0', 'opacity-100');
     setTimeout(() => {
-      elements.toast.classList.add('translate-y-20', 'opacity-0');
+      elements.toast.classList.add('translate-y-24', 'opacity-0');
       elements.toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2500);
+    }, 2800);
   }
 
   // --- CALCULATION ENGINE ---
@@ -143,10 +292,8 @@
       let dayGrossProfit = 0;
 
       if (state.mode === 'compound') {
-        // Bileşik faiz: O anki bakiye üzerinden kâr
         dayGrossProfit = startBalance * dailyRateFrac;
       } else {
-        // Basit faiz: Sadece başlangıçtaki anapara üzerinden sabit kâr
         dayGrossProfit = state.principal * dailyRateFrac;
       }
 
@@ -158,7 +305,6 @@
         reinvested = netProfit * reinvestFrac;
         currentBalance = startBalance + reinvested + extraDaily;
       } else {
-        // Basit faizde kâr anaparaya eklenmez
         currentBalance = state.principal + cumulativeProfit + (day * extraDaily);
       }
 
@@ -184,7 +330,6 @@
 
   // --- RENDER FUNCTIONS ---
   function renderUI() {
-    // 1. Calculate up to 365 or customDay
     const maxDayNeeded = Math.max(365, state.customDay || 45);
     cachedProjection = calculateProjections(maxDayNeeded);
 
@@ -229,13 +374,14 @@
       elements.customDayResult.textContent = '...';
     }
 
-    // Update Chart
+    // Update Chart & Table
     renderChart();
-
-    // Update Table
     renderTable();
 
-    // Update URL Hash without adding history stack spam
+    // Persist to Cookies & LocalStorage
+    saveSettings();
+
+    // Sync URL Hash
     updateUrlHash();
   }
 
@@ -244,29 +390,30 @@
     const daysToShow = state.chartDays;
     const dataSubset = cachedProjection.slice(0, daysToShow);
 
-    const labels = dataSubset.map(d => `${d.day}. Gün`);
+    const labels = dataSubset.map(d => `${d.day}.G`);
     const balanceData = dataSubset.map(d => Math.round(d.endBalance));
     const profitData = dataSubset.map(d => Math.round(d.cumulativeProfit));
 
     const ctx = elements.growthChartCanvas.getContext('2d');
 
-    // Create Gradients
-    const balanceGradient = ctx.createLinearGradient(0, 0, 0, 300);
+    const balanceGradient = ctx.createLinearGradient(0, 0, 0, 260);
     balanceGradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
     balanceGradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
-    const profitGradient = ctx.createLinearGradient(0, 0, 0, 300);
+    const profitGradient = ctx.createLinearGradient(0, 0, 0, 260);
     profitGradient.addColorStop(0, 'rgba(6, 182, 212, 0.3)');
     profitGradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
 
+    const isMobile = window.innerWidth < 640;
+
     const pointRadiusList = dataSubset.map(d => {
-      if (d.day === 30 || d.day === 60) return 6;
+      if (d.day === 30 || d.day === 60) return isMobile ? 5 : 6;
       return 0;
     });
 
     const pointHoverRadiusList = dataSubset.map(d => {
-      if (d.day === 30 || d.day === 60) return 8;
-      return 4;
+      if (d.day === 30 || d.day === 60) return isMobile ? 7 : 8;
+      return 5;
     });
 
     const chartConfig = {
@@ -279,9 +426,10 @@
             data: balanceData,
             borderColor: '#10b981',
             backgroundColor: balanceGradient,
-            borderWidth: 2.5,
+            borderWidth: isMobile ? 2 : 2.5,
             fill: true,
             tension: 0.3,
+            hitRadius: 12,
             pointRadius: pointRadiusList,
             pointHoverRadius: pointHoverRadiusList,
             pointBackgroundColor: '#10b981',
@@ -293,10 +441,11 @@
             data: profitData,
             borderColor: '#06b6d4',
             backgroundColor: profitGradient,
-            borderWidth: 2,
+            borderWidth: isMobile ? 1.5 : 2,
             borderDash: [4, 4],
             fill: true,
             tension: 0.3,
+            hitRadius: 12,
             pointRadius: pointRadiusList,
             pointHoverRadius: pointHoverRadiusList,
             pointBackgroundColor: '#06b6d4',
@@ -315,11 +464,11 @@
         plugins: {
           legend: {
             position: 'top',
-            align: 'end',
+            align: isMobile ? 'center' : 'end',
             labels: {
               color: '#94a3b8',
-              font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
-              boxWidth: 12,
+              font: { family: 'Plus Jakarta Sans', size: isMobile ? 10 : 11, weight: '600' },
+              boxWidth: 10,
               usePointStyle: true,
             }
           },
@@ -329,8 +478,8 @@
             bodyColor: '#cbd5e1',
             borderColor: '#334155',
             borderWidth: 1,
-            padding: 10,
-            titleFont: { size: 12, weight: 'bold' },
+            padding: 8,
+            titleFont: { size: 11, weight: 'bold' },
             bodyFont: { family: 'JetBrains Mono', size: 11 },
             callbacks: {
               label: function (context) {
@@ -342,23 +491,24 @@
         },
         scales: {
           x: {
-            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            grid: { color: 'rgba(51, 65, 85, 0.25)' },
             ticks: {
               color: '#64748b',
-              font: { size: 10 },
-              maxTicksLimit: 10,
+              font: { size: 9 },
+              maxTicksLimit: isMobile ? 6 : 10,
               callback: function (val, index) {
-                return (index + 1) % 5 === 0 || index === 0 || (index + 1) === 30 || (index + 1) === 60 
-                  ? `${index + 1}.G` 
+                const dayNum = index + 1;
+                return dayNum % (isMobile ? 10 : 5) === 0 || dayNum === 1 || dayNum === 30 || dayNum === 60 
+                  ? `${dayNum}.G` 
                   : '';
               }
             }
           },
           y: {
-            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            grid: { color: 'rgba(51, 65, 85, 0.25)' },
             ticks: {
               color: '#64748b',
-              font: { family: 'JetBrains Mono', size: 10 },
+              font: { family: 'JetBrains Mono', size: 9 },
               callback: function (value) {
                 if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M ${state.currency}`;
                 if (value >= 1000) return `${(value / 1000).toFixed(0)}K ${state.currency}`;
@@ -394,22 +544,22 @@
 
       if (row.day === 30) {
         rowClass += ' highlight-milestone';
-        badge = '<span class="ml-1.5 px-1.5 py-0.2 rounded text-[10px] bg-brand-500/20 text-brand-300 font-sans font-bold">1 Ay</span>';
+        badge = '<span class="ml-1 px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] bg-brand-500/25 text-brand-300 font-sans font-bold">1 Ay</span>';
       } else if (row.day === 60) {
         rowClass += ' highlight-60';
-        badge = '<span class="ml-1.5 px-1.5 py-0.2 rounded text-[10px] bg-cyan-500/20 text-cyan-300 font-sans font-bold">2 Ay</span>';
+        badge = '<span class="ml-1 px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] bg-cyan-500/25 text-cyan-300 font-sans font-bold">2 Ay</span>';
       }
 
       html += `
         <tr class="${rowClass}">
-          <td class="py-2.5 px-4 font-bold text-white whitespace-nowrap">
+          <td class="py-2.5 px-3 sm:px-4 font-bold text-white whitespace-nowrap">
             ${row.day}. Gün ${badge}
           </td>
-          <td class="py-2.5 px-4 text-slate-400 whitespace-nowrap">${row.date}</td>
-          <td class="py-2.5 px-4 text-right text-slate-300">${formatMoney(row.startBalance)}</td>
-          <td class="py-2.5 px-4 text-right text-brand-400 font-semibold">+${formatMoney(row.dayProfit)}</td>
-          <td class="py-2.5 px-4 text-right text-emerald-300 font-semibold">+${formatMoney(row.cumulativeProfit)}</td>
-          <td class="py-2.5 px-4 text-right text-white font-bold">${formatMoney(row.endBalance)}</td>
+          <td class="py-2.5 px-3 sm:px-4 text-slate-400 whitespace-nowrap">${row.date}</td>
+          <td class="py-2.5 px-3 sm:px-4 text-right text-slate-300 whitespace-nowrap">${formatMoney(row.startBalance)}</td>
+          <td class="py-2.5 px-3 sm:px-4 text-right text-brand-400 font-semibold whitespace-nowrap">+${formatMoney(row.dayProfit)}</td>
+          <td class="py-2.5 px-3 sm:px-4 text-right text-emerald-300 font-semibold whitespace-nowrap">+${formatMoney(row.cumulativeProfit)}</td>
+          <td class="py-2.5 px-3 sm:px-4 text-right text-white font-bold whitespace-nowrap">${formatMoney(row.endBalance)}</td>
         </tr>
       `;
     }
@@ -440,13 +590,11 @@
     } else if (changedField === 'principal') {
       state.principal = principal;
       if (state.lastEdited === 'amount') {
-        // If user preferred amount, recompute rate
         if (principal > 0) {
           state.dailyRate = Number(((state.dailyAmount / principal) * 100).toFixed(4));
           elements.dailyRateInput.value = state.dailyRate;
         }
       } else {
-        // Default: keep rate constant, recompute daily amount
         state.dailyAmount = Number(((principal * state.dailyRate) / 100).toFixed(2));
         elements.dailyAmountInput.value = state.dailyAmount;
       }
@@ -573,6 +721,7 @@
 
         state.chartDays = parseInt(btn.dataset.days, 10);
         renderChart();
+        saveSettings();
       });
     });
 
@@ -588,6 +737,7 @@
 
         state.tableFilterDays = parseInt(btn.dataset.filter, 10);
         renderTable();
+        saveSettings();
       });
     });
 
@@ -610,6 +760,15 @@
 
     // Reset button
     elements.resetBtn.addEventListener('click', resetDefaults);
+
+    // Window resize (re-render chart for responsive breakpoints)
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (chartInstance) renderChart();
+      }, 250);
+    });
   }
 
   function fallbackCopyText(text) {
@@ -677,16 +836,20 @@
   }
 
   function loadFromUrlHash() {
-    if (!window.location.hash || window.location.hash.length <= 1) return;
+    if (!window.location.hash || window.location.hash.length <= 1) return false;
     try {
       const params = new URLSearchParams(window.location.hash.substring(1));
+      let loadedAny = false;
+
       if (params.has('p')) {
         state.principal = parseFloat(params.get('p')) || state.principal;
         elements.principalInput.value = state.principal;
+        loadedAny = true;
       }
       if (params.has('r')) {
         state.dailyRate = parseFloat(params.get('r')) || state.dailyRate;
         elements.dailyRateInput.value = state.dailyRate;
+        loadedAny = true;
       }
       if (params.has('m')) {
         state.mode = params.get('m') === 'simple' ? 'simple' : 'compound';
@@ -694,11 +857,14 @@
           elements.modeSimple.checked = true;
           elements.simpleModeLabel.classList.add('active');
           elements.compoundModeLabel.classList.remove('active');
+          elements.reinvestContainer.classList.add('opacity-40', 'pointer-events-none');
         } else {
           elements.modeCompound.checked = true;
           elements.compoundModeLabel.classList.add('active');
           elements.simpleModeLabel.classList.remove('active');
+          elements.reinvestContainer.classList.remove('opacity-40', 'pointer-events-none');
         }
+        loadedAny = true;
       }
       if (params.has('c')) {
         state.currency = params.get('c');
@@ -712,6 +878,7 @@
           }
         });
         elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+        loadedAny = true;
       }
       if (params.has('tax')) {
         state.taxRate = parseFloat(params.get('tax')) || 0;
@@ -732,15 +899,21 @@
         elements.customDayInput.value = state.customDay;
       }
 
-      // Calculate initial daily amount
       state.dailyAmount = Number(((state.principal * state.dailyRate) / 100).toFixed(2));
       elements.dailyAmountInput.value = state.dailyAmount;
+      return loadedAny;
     } catch (e) {
-      console.warn('URL parametreleri yüklenemedi:', e);
+      console.warn('URL parametreleri okunamadı:', e);
+      return false;
     }
   }
 
   function resetDefaults() {
+    eraseCookie(COOKIE_NAME);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+
     state.principal = 10000;
     state.dailyRate = 1.5;
     state.dailyAmount = 150;
@@ -752,6 +925,7 @@
     state.chartDays = 60;
     state.tableFilterDays = 60;
     state.customDay = 45;
+    state.lastEdited = 'rate';
 
     elements.principalInput.value = 10000;
     elements.dailyRateInput.value = 1.5;
@@ -759,6 +933,7 @@
     elements.modeCompound.checked = true;
     elements.compoundModeLabel.classList.add('active');
     elements.simpleModeLabel.classList.remove('active');
+    elements.reinvestContainer.classList.remove('opacity-40', 'pointer-events-none');
     elements.taxRateInput.value = 0;
     elements.taxRateLabel.textContent = '%0';
     elements.reinvestRateInput.value = 100;
@@ -777,14 +952,23 @@
     });
     elements.currencySymbols.forEach(s => (s.textContent = '₺'));
 
+    // Reset hash
+    history.replaceState(null, '', window.location.pathname);
+
     renderUI();
-    showToast('Varsayılan değerlere sıfırlandı.');
+    showToast('Çerezler ve değerler varsayılana sıfırlandı.');
   }
 
   // --- INIT ---
   function init() {
     setupEvents();
-    loadFromUrlHash();
+
+    // Priority: URL hash first (if shared), then saved cookies / localStorage
+    const hasHash = loadFromUrlHash();
+    if (!hasHash) {
+      loadSettingsFromStorage();
+    }
+
     syncDailyFields('principal');
     renderUI();
   }

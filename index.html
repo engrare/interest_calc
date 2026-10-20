@@ -2,13 +2,13 @@
 <html lang="tr" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>Faiz & Getiri Hesaplayıcı | 30 ve 60 Günlük Kazanç Projeksiyonu</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -49,95 +49,130 @@
     }
   </script>
 </head>
-<body class="bg-dark-950 text-slate-100 min-h-screen font-sans selection:bg-brand-500 selection:text-dark-950 antialiased">
+<body class="bg-dark-950 text-slate-100 min-h-screen font-sans selection:bg-brand-500 selection:text-dark-950 antialiased overflow-x-hidden">
+  
   <!-- Glow Background Accents -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-10 left-1/3 w-[30rem] h-[30rem] bg-cyan-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute -top-40 -left-40 w-72 sm:w-96 h-72 sm:h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-72 sm:w-96 h-72 sm:h-96 bg-emerald-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-10 left-1/3 w-80 sm:w-[30rem] h-80 sm:h-[30rem] bg-cyan-600/10 rounded-full blur-3xl"></div>
   </div>
 
   <!-- Header -->
-  <header class="border-b border-slate-800/80 bg-dark-900/70 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+  <header class="border-b border-slate-800/80 bg-dark-900/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo & Name -->
+      <a href="#" class="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20 shrink-0">
           <svg class="w-5 h-5 text-dark-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
         </div>
         <div>
-          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent leading-tight">
             InterestCalc
           </h1>
-          <p class="text-xs text-slate-400 font-medium">Günlük Getiri & Vade Projeksiyonu</p>
+          <p class="text-[10px] sm:text-xs text-slate-400 font-medium hidden sm:block">Günlük Getiri & Vade Projeksiyonu</p>
         </div>
-      </div>
+      </a>
 
-      <div class="flex items-center space-x-3">
-        <!-- Currency Selector -->
-        <div class="flex items-center bg-dark-850 border border-slate-800 rounded-lg p-1 text-xs font-semibold">
-          <button type="button" data-currency="₺" class="currency-btn active px-2.5 py-1 rounded-md transition-all text-white bg-brand-600 shadow">₺ TL</button>
-          <button type="button" data-currency="$" class="currency-btn px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">$ USD</button>
-          <button type="button" data-currency="€" class="currency-btn px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">€ EUR</button>
-          <button type="button" data-currency="USDT " class="currency-btn px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">USDT</button>
+      <!-- Right Controls: Currency Selector & Share -->
+      <div class="flex items-center space-x-1.5 sm:space-x-3">
+        <!-- Currency Selector (Mobile Optimized) -->
+        <div class="flex items-center bg-dark-850 border border-slate-800 rounded-lg p-0.5 sm:p-1 text-xs font-semibold">
+          <button type="button" data-currency="₺" class="currency-btn active px-2 sm:px-2.5 py-1 rounded-md transition-all text-white bg-brand-600 shadow text-[11px] sm:text-xs">₺<span class="hidden sm:inline"> TL</span></button>
+          <button type="button" data-currency="$" class="currency-btn px-2 sm:px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white text-[11px] sm:text-xs">$<span class="hidden sm:inline"> USD</span></button>
+          <button type="button" data-currency="€" class="currency-btn px-2 sm:px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white text-[11px] sm:text-xs">€<span class="hidden sm:inline"> EUR</span></button>
+          <button type="button" data-currency="USDT " class="currency-btn px-2 sm:px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white text-[11px] sm:text-xs">USDT</button>
         </div>
 
-        <!-- Share / Reset buttons -->
-        <button id="copyLinkBtn" title="Hesaplama Linkini Kopyala" class="p-2 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-slate-300 hover:text-brand-400 transition-colors">
+        <!-- Share / Copy Link Button -->
+        <button id="copyLinkBtn" title="Hesaplama Linkini Kopyala" class="p-2 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-800 text-slate-300 hover:text-brand-400 transition-colors shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
           </svg>
         </button>
       </div>
+
     </div>
   </header>
 
+  <!-- Mobile Quick Jump Bar (Sticky under header on small screens) -->
+  <div class="lg:hidden bg-dark-900/90 backdrop-blur border-b border-slate-800/80 px-3 py-2 flex items-center justify-between text-xs sticky top-16 z-30">
+    <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+      <a href="#inputSection" class="px-2.5 py-1 rounded-md bg-dark-850 border border-slate-700/60 text-slate-300 font-medium whitespace-nowrap active:bg-brand-600 active:text-white">
+        ⚙️ Parametreler
+      </a>
+      <a href="#resultsSection" class="px-2.5 py-1 rounded-md bg-brand-500/15 border border-brand-500/30 text-brand-300 font-medium whitespace-nowrap">
+        ⚡ 30 & 60 Gün
+      </a>
+      <a href="#chartSection" class="px-2.5 py-1 rounded-md bg-dark-850 border border-slate-700/60 text-slate-300 font-medium whitespace-nowrap">
+        📈 Grafik
+      </a>
+      <a href="#tableSection" class="px-2.5 py-1 rounded-md bg-dark-850 border border-slate-700/60 text-slate-300 font-medium whitespace-nowrap">
+        📋 Döküm
+      </a>
+    </div>
+
+    <!-- Quick Cookie Indicator Badge -->
+    <span class="flex items-center gap-1 text-[10px] text-emerald-400 font-medium shrink-0 ml-2" title="Girdiğiniz değerler çerezlerde/tarayıcınızda otomatik saklanır">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="hidden xs:inline">Çerezler</span> Aktif
+    </span>
+  </div>
+
   <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
     
     <!-- Top Welcome Banner / Notice -->
-    <div class="mb-8 rounded-2xl bg-gradient-to-r from-dark-900 via-dark-850 to-dark-900 border border-slate-800/80 p-5 shadow-xl relative overflow-hidden">
+    <div class="rounded-2xl bg-gradient-to-r from-dark-900 via-dark-850 to-dark-900 border border-slate-800/80 p-4 sm:p-5 shadow-xl relative overflow-hidden">
       <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20 mb-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span>
-            İstemci Taraflı (Frontend-Only) • Verileriniz Güvende
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span>
+              İstemci Taraflı (Frontend-Only)
+            </span>
+            <span id="cookieSavedNotice" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 transition-opacity duration-300">
+              🍪 Değerler Çerezlerde Saklanır
+            </span>
           </div>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+
+          <h2 class="text-lg sm:text-2xl font-extrabold text-white tracking-tight">
             Anaparanızı ve Günlük Kazancınızı Girin
           </h2>
-          <p class="text-sm text-slate-400 mt-1 max-w-2xl">
-            Bileşik veya basit faizle <span class="text-brand-300 font-semibold">30 gün</span> ve <span class="text-brand-300 font-semibold">60 gün</span> gibi kritik vadelerde ne kadar net kâr elde edeceğinizi ve bakiyenizin nasıl katlanacağını anlık görün.
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Bileşik veya basit faizle <span class="text-brand-300 font-semibold">30 gün (1 ay)</span> ve <span class="text-brand-300 font-semibold">60 gün (2 ay)</span> vadelerinde ne kadar kâr elde edeceğinizi ve bakiyenizin nasıl katlanacağını anlık görün.
           </p>
         </div>
 
-        <div class="flex items-center gap-2 self-start md:self-auto">
-          <button id="resetBtn" class="px-3.5 py-2 rounded-xl bg-dark-800 hover:bg-dark-700 border border-slate-700/80 text-xs font-medium text-slate-300 transition-colors flex items-center gap-1.5">
+        <div class="flex items-center gap-2 self-start md:self-auto shrink-0">
+          <button id="resetBtn" class="px-3.5 py-2 rounded-xl bg-dark-800 hover:bg-dark-700 active:scale-95 border border-slate-700/80 text-xs font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1.5 min-h-[38px]">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Sıfırla
+            Varsayılana Sıfırla
           </button>
         </div>
       </div>
     </div>
 
     <!-- Main Grid: Left Controls, Right Results -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
       
-      <!-- LEFT COLUMN: Form Inputs (4 cols) -->
-      <div class="lg:col-span-5 space-y-6">
+      <!-- LEFT COLUMN: Form Inputs (5 cols on lg) -->
+      <div id="inputSection" class="lg:col-span-5 space-y-5">
         
-        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
               Hesaplama Parametreleri
             </h3>
-            <span class="text-xs px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 font-mono font-medium">Canlı Güncelleme</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 font-mono font-medium">Anlık Canlı</span>
           </div>
 
           <!-- 1. Principal Amount (Anapara) -->
@@ -159,28 +194,29 @@
                 min="0"
                 step="any"
                 value="10000"
+                inputmode="decimal"
                 class="block w-full rounded-xl bg-dark-950 border border-slate-700/80 pl-9 pr-4 py-3 text-white font-mono text-base font-semibold focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition"
                 placeholder="Örn: 10000"
               />
             </div>
 
-            <!-- Quick Add Principal Buttons -->
-            <div class="grid grid-cols-4 gap-1.5 mt-2">
-              <button type="button" class="quick-principal-btn text-xs py-1 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white border border-slate-800 font-mono transition" data-amount="10000">10K</button>
-              <button type="button" class="quick-principal-btn text-xs py-1 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white border border-slate-800 font-mono transition" data-amount="50000">50K</button>
-              <button type="button" class="quick-principal-btn text-xs py-1 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white border border-slate-800 font-mono transition" data-amount="100000">100K</button>
-              <button type="button" class="quick-principal-btn text-xs py-1 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white border border-slate-800 font-mono transition" data-amount="500000">500K</button>
+            <!-- Quick Add Principal Buttons (Touch friendly) -->
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2 mt-2">
+              <button type="button" class="quick-principal-btn text-xs py-2 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-800 font-mono font-medium transition text-center" data-amount="10000">10K</button>
+              <button type="button" class="quick-principal-btn text-xs py-2 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-800 font-mono font-medium transition text-center" data-amount="50000">50K</button>
+              <button type="button" class="quick-principal-btn text-xs py-2 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-800 font-mono font-medium transition text-center" data-amount="100000">100K</button>
+              <button type="button" class="quick-principal-btn text-xs py-2 px-2 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-800 font-mono font-medium transition text-center" data-amount="500000">500K</button>
             </div>
           </div>
 
-          <!-- 2. Daily Earnings (Günlük Kazanç Tutarı ve Oranı Çift Yönlü Giriş) -->
-          <div class="p-4 rounded-xl bg-dark-950/70 border border-slate-800/90 space-y-3">
+          <!-- 2. Daily Earnings (Günlük Kazanç Tutarı ve Oranı) -->
+          <div class="p-3.5 sm:p-4 rounded-xl bg-dark-950/70 border border-slate-800/90 space-y-3">
             <div class="flex items-center justify-between">
               <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                 Günlük Kazanç Bilgisi
               </label>
-              <span class="text-[11px] text-slate-400">İki kutu birbirini otomatik hesaplar</span>
+              <span class="text-[10px] sm:text-[11px] text-slate-400">İki kutu birbirini otomatik senkronlar</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -199,7 +235,8 @@
                     min="0"
                     step="any"
                     value="150"
-                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2 text-white font-mono text-sm font-semibold focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition"
+                    inputmode="decimal"
+                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2.5 text-white font-mono text-base sm:text-sm font-semibold focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition"
                     placeholder="150"
                   />
                 </div>
@@ -220,7 +257,8 @@
                     min="0"
                     step="any"
                     value="1.50"
-                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2 text-white font-mono text-sm font-semibold focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition"
+                    inputmode="decimal"
+                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2.5 text-white font-mono text-base sm:text-sm font-semibold focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition"
                     placeholder="1.50"
                   />
                 </div>
@@ -229,12 +267,12 @@
 
             <!-- Quick Rate buttons -->
             <div class="flex items-center gap-1.5 flex-wrap pt-1">
-              <span class="text-[11px] text-slate-400 mr-1">Örnek Oranlar:</span>
-              <button type="button" class="quick-rate-btn text-[11px] py-0.5 px-2 rounded bg-dark-850 hover:bg-dark-800 text-slate-300 border border-slate-700/60 font-mono transition" data-rate="0.5">%0.5</button>
-              <button type="button" class="quick-rate-btn text-[11px] py-0.5 px-2 rounded bg-dark-850 hover:bg-dark-800 text-slate-300 border border-slate-700/60 font-mono transition" data-rate="1.0">%1.0</button>
-              <button type="button" class="quick-rate-btn text-[11px] py-0.5 px-2 rounded bg-dark-850 hover:bg-dark-800 text-slate-300 border border-slate-700/60 font-mono transition" data-rate="1.5">%1.5</button>
-              <button type="button" class="quick-rate-btn text-[11px] py-0.5 px-2 rounded bg-dark-850 hover:bg-dark-800 text-slate-300 border border-slate-700/60 font-mono transition" data-rate="2.0">%2.0</button>
-              <button type="button" class="quick-rate-btn text-[11px] py-0.5 px-2 rounded bg-dark-850 hover:bg-dark-800 text-slate-300 border border-slate-700/60 font-mono transition" data-rate="3.0">%3.0</button>
+              <span class="text-[11px] text-slate-400 mr-1">Örnek Oran:</span>
+              <button type="button" class="quick-rate-btn text-[11px] py-1 px-2.5 rounded bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-700/60 font-mono transition" data-rate="0.5">%0.5</button>
+              <button type="button" class="quick-rate-btn text-[11px] py-1 px-2.5 rounded bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-700/60 font-mono transition" data-rate="1.0">%1.0</button>
+              <button type="button" class="quick-rate-btn text-[11px] py-1 px-2.5 rounded bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-700/60 font-mono transition" data-rate="1.5">%1.5</button>
+              <button type="button" class="quick-rate-btn text-[11px] py-1 px-2.5 rounded bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-700/60 font-mono transition" data-rate="2.0">%2.0</button>
+              <button type="button" class="quick-rate-btn text-[11px] py-1 px-2.5 rounded bg-dark-850 hover:bg-dark-800 active:bg-brand-600 active:text-white text-slate-300 border border-slate-700/60 font-mono transition" data-rate="3.0">%3.0</button>
             </div>
           </div>
 
@@ -243,38 +281,38 @@
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Faiz Modeli
             </label>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="relative flex flex-col p-3.5 rounded-xl border border-brand-500/50 bg-brand-500/10 cursor-pointer transition hover:border-brand-500 interest-mode-card active" id="compoundModeLabel">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <label class="relative flex flex-col p-3 sm:p-3.5 rounded-xl border border-brand-500/50 bg-brand-500/10 cursor-pointer transition hover:border-brand-500 interest-mode-card active" id="compoundModeLabel">
                 <input type="radio" name="interestMode" value="compound" checked class="sr-only" id="modeCompound" />
                 <span class="text-xs font-bold text-white flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full bg-brand-400 ring-2 ring-brand-500/20"></span>
                   Bileşik Faiz
                 </span>
-                <span class="text-[11px] text-slate-400 mt-1">Kazanç anaparaya eklenir, katlanarak büyür (Önerilen)</span>
+                <span class="text-[11px] text-slate-400 mt-1 leading-snug">Kazanç her gün anaparaya eklenir, katlanarak büyür</span>
               </label>
 
-              <label class="relative flex flex-col p-3.5 rounded-xl border border-slate-800 bg-dark-950 cursor-pointer transition hover:border-slate-700 interest-mode-card" id="simpleModeLabel">
+              <label class="relative flex flex-col p-3 sm:p-3.5 rounded-xl border border-slate-800 bg-dark-950 cursor-pointer transition hover:border-slate-700 interest-mode-card" id="simpleModeLabel">
                 <input type="radio" name="interestMode" value="simple" class="sr-only" id="modeSimple" />
                 <span class="text-xs font-bold text-white flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
                   Basit Faiz
                 </span>
-                <span class="text-[11px] text-slate-400 mt-1">Sadece ilk anapara baz alınır, kazanç sabittir</span>
+                <span class="text-[11px] text-slate-400 mt-1 leading-snug">Sadece ilk anapara baz alınır, kazanç sabittir</span>
               </label>
             </div>
           </div>
 
           <!-- 4. Advanced Settings (Accordion) -->
           <div class="border border-slate-800 rounded-xl overflow-hidden bg-dark-950/40">
-            <button type="button" id="toggleAdvancedBtn" class="w-full px-4 py-3 text-left text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-between transition">
+            <button type="button" id="toggleAdvancedBtn" class="w-full px-4 py-3 text-left text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-between transition min-h-[44px]">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                İleri Düzey Ayarlar (Stopaj / Vergi & Yeniden Yatırım)
+                İleri Düzey Ayarlar (Stopaj, Vergi & Ekleme)
               </span>
-              <svg id="advancedChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg id="advancedChevron" class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -293,7 +331,8 @@
                   max="100"
                   step="0.5"
                   value="0"
-                  class="block w-full rounded-lg bg-dark-900 border border-slate-700 px-3 py-2 text-white font-mono text-xs focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+                  inputmode="decimal"
+                  class="block w-full rounded-lg bg-dark-900 border border-slate-700 px-3 py-2 text-white font-mono text-base sm:text-xs focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
                   placeholder="Örn: 5"
                 />
                 <p class="text-[11px] text-slate-500 mt-1">Kazanılan faizden kesilecek vergi oranı (varsayılan: 0).</p>
@@ -312,12 +351,12 @@
                   max="100"
                   step="5"
                   value="100"
-                  class="w-full h-2 bg-dark-900 rounded-lg appearance-none cursor-pointer accent-brand-500"
+                  class="w-full h-2.5 bg-dark-900 rounded-lg appearance-none cursor-pointer accent-brand-500 py-1"
                 />
                 <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-                  <span>%0 (Hiç ekleme)</span>
+                  <span>%0 (Çek)</span>
                   <span>%50</span>
-                  <span>%100 (Tümünü ekle)</span>
+                  <span>%100 (Tümünü Ekle)</span>
                 </div>
               </div>
 
@@ -336,7 +375,8 @@
                     min="0"
                     step="any"
                     value="0"
-                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2 text-white font-mono text-xs focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+                    inputmode="decimal"
+                    class="block w-full rounded-lg bg-dark-900 border border-slate-700 pl-8 pr-3 py-2 text-white font-mono text-base sm:text-xs focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
                     placeholder="0"
                   />
                 </div>
@@ -345,7 +385,7 @@
           </div>
 
           <!-- 5. Custom Day Calculator -->
-          <div class="p-4 rounded-xl bg-gradient-to-r from-dark-850 to-dark-900 border border-slate-800">
+          <div class="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-dark-850 to-dark-900 border border-slate-800">
             <label for="customDayInput" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Özel Gün Hesaplayıcı
             </label>
@@ -356,11 +396,12 @@
                 min="1"
                 max="3650"
                 value="45"
-                class="w-24 rounded-lg bg-dark-950 border border-slate-700 px-3 py-2 text-white font-mono text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+                inputmode="numeric"
+                class="w-20 sm:w-24 rounded-lg bg-dark-950 border border-slate-700 px-3 py-2 text-white font-mono text-base sm:text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
               />
-              <div class="flex-1 flex items-center justify-between px-3 py-2 rounded-lg bg-dark-950/80 border border-slate-800/80">
-                <span class="text-xs text-slate-400"><span id="customDayLabel" class="font-bold text-white">45</span> Gün Kazancı:</span>
-                <span id="customDayResult" class="text-xs font-mono font-bold text-brand-400">...</span>
+              <div class="flex-1 flex items-center justify-between px-3 py-2 rounded-lg bg-dark-950/80 border border-slate-800/80 min-w-0">
+                <span class="text-xs text-slate-400 truncate mr-2"><span id="customDayLabel" class="font-bold text-white">45</span> Gün Kazancı:</span>
+                <span id="customDayResult" class="text-xs font-mono font-bold text-brand-400 whitespace-nowrap">...</span>
               </div>
             </div>
           </div>
@@ -369,15 +410,15 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Results & Projections (7 cols) -->
-      <div class="lg:col-span-7 space-y-6">
+      <!-- RIGHT COLUMN: Results & Projections (7 cols on lg) -->
+      <div id="resultsSection" class="lg:col-span-7 space-y-5 sm:space-y-6">
 
         <!-- HIGHLIGHT: 30 Gün ve 60 Gün Özel Vitrin Kartları -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           
           <!-- 30 GÜNLÜK KAZANÇ KARTI -->
-          <div class="relative rounded-2xl bg-gradient-to-b from-dark-900 to-dark-850 border-2 border-emerald-500/40 p-5 shadow-2xl overflow-hidden group hover:border-emerald-400 transition-all">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+          <div class="relative rounded-2xl bg-gradient-to-b from-dark-900 to-dark-850 border-2 border-emerald-500/40 p-4 sm:p-5 shadow-2xl overflow-hidden group hover:border-emerald-400 transition-all">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all pointer-events-none"></div>
             
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
@@ -395,7 +436,7 @@
             <!-- Total Profit -->
             <div class="mb-3">
               <div class="text-xs text-slate-400 font-medium">Net Faiz Kazancı</div>
-              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight mt-0.5" id="profit30">
+              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight mt-0.5 break-words" id="profit30">
                 ₺0
               </div>
             </div>
@@ -404,7 +445,7 @@
             <div class="pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span class="text-slate-400 block text-[11px]">Toplam Bakiye</span>
-                <span class="font-mono font-bold text-slate-200" id="balance30">₺0</span>
+                <span class="font-mono font-bold text-slate-200 break-words" id="balance30">₺0</span>
               </div>
               <div>
                 <span class="text-slate-400 block text-[11px]">Büyüme (ROI)</span>
@@ -414,8 +455,8 @@
           </div>
 
           <!-- 60 GÜNLÜK KAZANÇ KARTI -->
-          <div class="relative rounded-2xl bg-gradient-to-b from-dark-900 to-dark-850 border-2 border-cyan-500/40 p-5 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all"></div>
+          <div class="relative rounded-2xl bg-gradient-to-b from-dark-900 to-dark-850 border-2 border-cyan-500/40 p-4 sm:p-5 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all pointer-events-none"></div>
             
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
@@ -433,7 +474,7 @@
             <!-- Total Profit -->
             <div class="mb-3">
               <div class="text-xs text-slate-400 font-medium">Net Faiz Kazancı</div>
-              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight mt-0.5" id="profit60">
+              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight mt-0.5 break-words" id="profit60">
                 ₺0
               </div>
             </div>
@@ -442,7 +483,7 @@
             <div class="pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span class="text-slate-400 block text-[11px]">Toplam Bakiye</span>
-                <span class="font-mono font-bold text-slate-200" id="balance60">₺0</span>
+                <span class="font-mono font-bold text-slate-200 break-words" id="balance60">₺0</span>
               </div>
               <div>
                 <span class="text-slate-400 block text-[11px]">Büyüme (ROI)</span>
@@ -454,74 +495,74 @@
         </div>
 
         <!-- Diğer Vadeler (7, 14, 90, 180, 365 Günlük Hızlı Matris) -->
-        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
-            <span>Diğer Kilometre Taşları</span>
+            <span>Diğer Vadeler</span>
             <span class="text-[11px] font-normal text-slate-500">Faiz & Toplam Bakiye</span>
           </h4>
 
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5" id="milestonesContainer">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5" id="milestonesContainer">
             <!-- 7 Days -->
             <div class="p-3 rounded-xl bg-dark-950 border border-slate-800/80">
               <div class="text-[11px] font-semibold text-slate-400">7 Gün (1 Hf)</div>
-              <div class="text-sm font-bold font-mono text-brand-300 mt-1" id="profit7">₺0</div>
-              <div class="text-[10px] text-slate-500 font-mono mt-0.5" id="balance7">Bak: ₺0</div>
+              <div class="text-sm font-bold font-mono text-brand-300 mt-1 truncate" id="profit7">₺0</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" id="balance7">Bak: ₺0</div>
             </div>
 
             <!-- 14 Days -->
             <div class="p-3 rounded-xl bg-dark-950 border border-slate-800/80">
               <div class="text-[11px] font-semibold text-slate-400">14 Gün (2 Hf)</div>
-              <div class="text-sm font-bold font-mono text-brand-300 mt-1" id="profit14">₺0</div>
-              <div class="text-[10px] text-slate-500 font-mono mt-0.5" id="balance14">Bak: ₺0</div>
+              <div class="text-sm font-bold font-mono text-brand-300 mt-1 truncate" id="profit14">₺0</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" id="balance14">Bak: ₺0</div>
             </div>
 
             <!-- 90 Days -->
             <div class="p-3 rounded-xl bg-dark-950 border border-slate-800/80">
               <div class="text-[11px] font-semibold text-slate-400">90 Gün (Çeyrek)</div>
-              <div class="text-sm font-bold font-mono text-brand-300 mt-1" id="profit90">₺0</div>
-              <div class="text-[10px] text-slate-500 font-mono mt-0.5" id="balance90">Bak: ₺0</div>
+              <div class="text-sm font-bold font-mono text-brand-300 mt-1 truncate" id="profit90">₺0</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" id="balance90">Bak: ₺0</div>
             </div>
 
             <!-- 180 Days -->
             <div class="p-3 rounded-xl bg-dark-950 border border-slate-800/80">
               <div class="text-[11px] font-semibold text-slate-400">180 Gün (6 Ay)</div>
-              <div class="text-sm font-bold font-mono text-brand-300 mt-1" id="profit180">₺0</div>
-              <div class="text-[10px] text-slate-500 font-mono mt-0.5" id="balance180">Bak: ₺0</div>
+              <div class="text-sm font-bold font-mono text-brand-300 mt-1 truncate" id="profit180">₺0</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" id="balance180">Bak: ₺0</div>
             </div>
 
-            <!-- 365 Days -->
+            <!-- 365 Days (Spans 2 cols on mobile, 1 on larger) -->
             <div class="p-3 rounded-xl bg-dark-950 border border-slate-800/80 col-span-2 sm:col-span-1">
               <div class="text-[11px] font-semibold text-slate-400">365 Gün (1 Yıl)</div>
-              <div class="text-sm font-bold font-mono text-brand-300 mt-1" id="profit365">₺0</div>
-              <div class="text-[10px] text-slate-500 font-mono mt-0.5" id="balance365">Bak: ₺0</div>
+              <div class="text-sm font-bold font-mono text-brand-300 mt-1 truncate" id="profit365">₺0</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" id="balance365">Bak: ₺0</div>
             </div>
           </div>
         </div>
 
         <!-- GROWTH CHART (GRAFİK) -->
-        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div id="chartSection" class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h4 class="text-sm font-bold text-white flex items-center gap-2">
-                <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-brand-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                 </svg>
                 Zaman İçinde Bakiye ve Kazanç Büyümesi
               </h4>
-              <p class="text-xs text-slate-400 mt-0.5">30. ve 60. gün gibi kilometre taşlarındaki eğriyi inceleyin</p>
+              <p class="text-xs text-slate-400 mt-0.5">30. ve 60. gün kilometre taşlarındaki eğriyi inceleyin</p>
             </div>
 
-            <!-- Chart Period Switcher -->
-            <div class="flex items-center bg-dark-950 border border-slate-800 rounded-lg p-0.5 text-xs font-medium self-start sm:self-auto">
-              <button type="button" class="chart-period-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="30">30 Gün</button>
-              <button type="button" class="chart-period-btn active px-2.5 py-1 rounded transition text-white bg-brand-600 shadow" data-days="60">60 Gün</button>
-              <button type="button" class="chart-period-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="90">90 Gün</button>
-              <button type="button" class="chart-period-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="180">180 Gün</button>
-              <button type="button" class="chart-period-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="365">1 Yıl</button>
+            <!-- Chart Period Switcher (Mobile Wrap friendly) -->
+            <div class="flex items-center bg-dark-950 border border-slate-800 rounded-lg p-0.5 text-xs font-medium self-start sm:self-auto flex-wrap gap-0.5">
+              <button type="button" class="chart-period-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="30">30G</button>
+              <button type="button" class="chart-period-btn active px-2 sm:px-2.5 py-1 rounded transition text-white bg-brand-600 shadow" data-days="60">60G</button>
+              <button type="button" class="chart-period-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="90">90G</button>
+              <button type="button" class="chart-period-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="180">180G</button>
+              <button type="button" class="chart-period-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-days="365">1 Yıl</button>
             </div>
           </div>
 
-          <div class="h-64 sm:h-72 w-full relative">
+          <div class="h-56 sm:h-72 w-full relative">
             <canvas id="growthChart"></canvas>
           </div>
         </div>
@@ -531,29 +572,29 @@
     </div>
 
     <!-- DAILY BREAKDOWN TABLE (GÜNLÜK DETAYLI DÖKÜM TABLOSU) -->
-    <div class="mt-8 bg-dark-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-      <div class="p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div id="tableSection" class="bg-dark-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-brand-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Gün Gün Faiz ve Bakiye Dökümü
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5">Her günün başlangıç tutarı, üretilen kâr ve kümülatif kazanç tablosu</p>
+          <p class="text-xs text-slate-400 mt-0.5">Her günün başlangıç tutarı, üretilen net kâr ve kümülatif kazanç tablosu</p>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
           <!-- Filter Days for Table -->
           <div class="flex items-center bg-dark-950 border border-slate-800 rounded-lg p-0.5 text-xs font-medium">
-            <button type="button" class="table-filter-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="30">30 Gün</button>
-            <button type="button" class="table-filter-btn active px-2.5 py-1 rounded transition text-white bg-brand-600 shadow" data-filter="60">60 Gün</button>
-            <button type="button" class="table-filter-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="90">90 Gün</button>
-            <button type="button" class="table-filter-btn px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="365">Tümü</button>
+            <button type="button" class="table-filter-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="30">30G</button>
+            <button type="button" class="table-filter-btn active px-2 sm:px-2.5 py-1 rounded transition text-white bg-brand-600 shadow" data-filter="60">60G</button>
+            <button type="button" class="table-filter-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="90">90G</button>
+            <button type="button" class="table-filter-btn px-2 sm:px-2.5 py-1 rounded transition text-slate-400 hover:text-white" data-filter="365">Tümü</button>
           </div>
 
           <!-- Export CSV Button -->
-          <button id="exportCsvBtn" class="px-3 py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-700 text-xs font-medium text-slate-200 hover:text-white transition flex items-center gap-1.5">
+          <button id="exportCsvBtn" class="px-3 py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-700 text-xs font-medium text-slate-200 hover:text-white transition flex items-center gap-1.5 min-h-[34px]">
             <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
@@ -562,17 +603,22 @@
         </div>
       </div>
 
-      <!-- Table Container -->
-      <div class="overflow-x-auto max-h-96 overflow-y-auto">
+      <!-- Mobile Scroll Hint -->
+      <div class="block sm:hidden text-[11px] text-slate-400 text-center py-1.5 bg-dark-950/80 border-b border-slate-800/80">
+        ↔️ Tüm sütunları görmek için tabloyu sağa kaydırabilirsiniz
+      </div>
+
+      <!-- Table Container with Sticky First Column for Mobile -->
+      <div class="overflow-x-auto max-h-96 overflow-y-auto relative table-scroll-container">
         <table class="w-full text-left border-collapse text-xs">
-          <thead class="sticky top-0 bg-dark-950/95 backdrop-blur border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+          <thead class="sticky top-0 bg-dark-950/95 backdrop-blur border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold z-20">
             <tr>
-              <th scope="col" class="py-3 px-4">Gün</th>
-              <th scope="col" class="py-3 px-4">Tarih</th>
-              <th scope="col" class="py-3 px-4 text-right">Başlangıç Bakiyesi</th>
-              <th scope="col" class="py-3 px-4 text-right">Günün Kazancı</th>
-              <th scope="col" class="py-3 px-4 text-right">Toplam Faiz Kazancı</th>
-              <th scope="col" class="py-3 px-4 text-right">Gün Sonu Bakiyesi</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 sticky left-0 bg-dark-950 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.4)]">Gün</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 whitespace-nowrap">Tarih</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">Başlangıç Bakiyesi</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">Günün Kazancı</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">Toplam Faiz Kazancı</th>
+              <th scope="col" class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">Gün Sonu Bakiyesi</th>
             </tr>
           </thead>
           <tbody id="breakdownTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
@@ -583,7 +629,7 @@
     </div>
 
     <!-- FAQ / Bilgilendirme Kartı -->
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 text-xs">
       <div class="p-4 rounded-xl bg-dark-900/60 border border-slate-800/80">
         <h5 class="font-bold text-white mb-1 flex items-center gap-1.5">
           <span class="text-brand-400">●</span> 30 ve 60 Günlük Fark
@@ -604,10 +650,10 @@
 
       <div class="p-4 rounded-xl bg-dark-900/60 border border-slate-800/80">
         <h5 class="font-bold text-white mb-1 flex items-center gap-1.5">
-          <span class="text-cyan-400">●</span> Tamamen İstemci Taraflı (Frontend)
+          <span class="text-cyan-400">●</span> Çerez & Gizlilik Güvencesi
         </h5>
         <p class="text-slate-400 leading-relaxed">
-          Tüm hesaplamalar tarayıcınızda JavaScript ile anlık gerçekleştirilir. Hiçbir finansal veriniz harici sunuculara iletilmez.
+          Girdiğiniz tüm değerler yalnızca kendi cihazınızın çerezlerinde ve yerel hafızasında saklanır. Hiçbir finansal veriniz dışarı gönderilmez.
         </p>
       </div>
     </div>
@@ -615,15 +661,17 @@
   </main>
 
   <!-- Toast Notification Container -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-brand-600 text-dark-950 font-semibold px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs">
-    <svg class="w-4 h-4 text-dark-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-    </svg>
-    <span id="toastMsg">Bildirim</span>
+  <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-brand-500 text-dark-950 font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between sm:justify-start gap-2.5 text-xs sm:text-sm">
+    <div class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-dark-950 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toastMsg">Bildirim</span>
+    </div>
   </div>
 
   <!-- Footer -->
-  <footer class="mt-16 border-t border-slate-800/60 py-6 text-center text-xs text-slate-400">
+  <footer class="mt-12 sm:mt-16 border-t border-slate-800/60 py-6 text-center text-xs text-slate-400 px-4">
     <p>InterestCalc &copy; 2026 • Frontend Faiz Hesaplama Aracı • <a href="https://github.com/engrare/interest_calc" target="_blank" class="text-brand-400 hover:underline">GitHub Reposu</a></p>
   </footer>
 
