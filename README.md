@@ -23,7 +23,21 @@ Engrare Finans; tamamen istemci taraflı (frontend-only), yüksek performanslı,
   - **Görsel Karşılaştırma Çubuğu:** Liste fiyatı ve faiz kazancı dağılımı.
   - **Ay Ay Taksit & Bakiye Akış Tablosu:** Her ayki başlangıç bakiyesi, faiz kazancı, taksit ödemesi ve kalan bakiye dökümü.
 
-### 3. 📱 Standart Mobil Navigasyon Menüsü (Bottom Nav)
+### 3. 💵 Dolar vs TL Faiz İhtimalsel Karar Motoru (YENİ)
+- **Karar Problemi:** TL faizde duran parayı **hemen şimdi mi dolara/yatırıma çevirmek** mantıklı, yoksa **seçilen tarih aralığı boyunca TL faizde bekletip vade sonunda mı yatırmak** daha kârlı?
+- **Girdiler:**
+  - **Yatırılacak Dolar Tutarı (`$`):** Örn. `$1.000`, `$5.000` vb.
+  - **Anlık USD/TRY Kuru (`₺`):** Bugün yatırmak için gereken TL anaparasını otomatik hesaplar.
+  - **Yatırım Tarih Aralığı:** Başlangıç ve son yatırım tarihi (veya hızlı `7`, `15`, `30`, `45`, `60`, `90` gün seçicileri).
+  - **Ortalama Aylık Dolar Artışı (`%`) & Kur Volatilitesi (`±%`):** İhtimalsel (Log-normal / Geometrik Brownian Motion) olasılık modeli için kur beklentisi ve standart sapma.
+- **Çıktılar:**
+  - **İhtimalsel Kazanma Oranı (`%`):** TL faizde beklemenin mi yoksa hemen yatırmanın mı yüzde kaç olasılıkla üstün geleceği.
+  - **Net Beklenen Avantaj (`₺` ve `$`):** Vade sonunda hedef dolar tutarı alındıktan sonra cepte kalan ekstra TL ve USD kârı.
+  - **Başabaş (Breakeven) Dolar Kuru:** Faiz getirisinin eridiği kritik dolar kuru eşiği.
+  - **3 Olasılık Senaryosu (`p10`, `p50`, `p90`):** Sakin kur, ortalama beklenti ve yüksek kur şoku senaryolarında net kâr/zarar durumu.
+  - **Tarih Aralığı Gün Gün Karşılaştırma Tablosu:** Seçilen tarih penceresindeki her gün için beklenen kur, başabaş kur, net avantaj ve kazanma olasılığı.
+
+### 4. 📱 Standart Mobil Navigasyon Menüsü (Bottom Nav)
 - Modern mobil uygulamalarda olduğu gibi ekranın altında sabitlenen hızlı menü çubuğu (`Faiz & Getiri`, `Taksit Arbitrajı`, `Hızlı Oran`).
 - iPhone/Android güvenli alan (safe-area) desteği.
 - Masaüstü ve geniş ekranlarda üst header tab geçişleri ile tam web uyumu.

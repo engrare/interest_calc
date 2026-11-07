@@ -64,6 +64,21 @@ input[type="number"] {
   font-weight: 700;
 }
 
+.highlight-row-fx-win {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  font-weight: 700;
+}
+
+.highlight-row-fx-now {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  font-weight: 700;
+}
+
+/* Dark theme native date input styling */
+input[type="date"] {
+  color-scheme: dark;
+}
+
 /* Tab pane fade transition */
 .tab-pane {
   animation: fadeIn 0.18s ease-out;

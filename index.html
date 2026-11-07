@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Engrare Finans | Günlük Faiz & Taksit Arbitraj Hesaplayıcı</title>
-  <meta name="description" content="Engrare Finans - Günlük faiz kazancı ve taksitli alışveriş faiz arbitrajı ile reel ödeme maliyeti hesaplama aracı." />
+  <title>Engrare Finans | Faiz, Taksit Arbitrajı & Dolar/Faiz Karar Motoru</title>
+  <meta name="description" content="Engrare Finans - Günlük faiz kazancı, taksitli alışveriş faiz arbitrajı ve ihtimalsel Dolar vs TL Faiz karar hesaplama aracı." />
 
   <!-- Favicon & Touch Icons from Engrare -->
   <link rel="icon" type="image/png" href="favicon.png?v=3" sizes="48x48" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261020_06" />
+  <link rel="stylesheet" href="style.css?v=20261107_01" />
   <script>
     window.tailwind = window.tailwind || {};
     window.tailwind.config = {
@@ -77,7 +77,7 @@
         <button
           type="button"
           data-target-tab="interest"
-          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-white bg-brand-600 shadow"
+          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-white bg-brand-600 shadow cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -87,12 +87,22 @@
         <button
           type="button"
           data-target-tab="installment"
-          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white"
+          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
           <span>Taksit Arbitrajı</span>
+        </button>
+        <button
+          type="button"
+          data-target-tab="fxdecision"
+          class="desktop-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Dolar vs Faiz</span>
           <span class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300">Yeni</span>
         </button>
       </nav>
@@ -398,9 +408,8 @@
             </div>
             <button
               type="button"
-              id="switchAndAdjustRateBtn"
               title="Faiz Oranını Değiştir"
-              class="px-2.5 py-1.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+              class="switch-adjust-rate-btn px-2.5 py-1.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
             >
               <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -672,25 +681,450 @@
 
     </div>
 
+    <!-- ========================================================== -->
+    <!-- TAB 3: DOLAR VS TL FAİZ İHTİMALSEL KARAR MOTORU (YENİ)     -->
+    <!-- ========================================================== -->
+    <div id="tabContentFxDecision" class="tab-pane hidden space-y-5">
+
+      <!-- BİLGİ & AKTİF FAİZ ORANI BANNER -->
+      <section class="bg-gradient-to-r from-dark-900 via-dark-850 to-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-xl bg-brand-500/20 text-brand-400 text-sm font-bold flex items-center justify-center border border-brand-500/30">💵</span>
+              <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Dolar vs TL Faiz İhtimalsel Karar Motoru</h2>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+              Yatıracağınız Dolar ($) tutarını ve tarih aralığını girin; TL faizdeki paranızı <strong>şu anda mı yatırmak</strong> yoksa <strong>faizde bekletip vade sonunda mı yatırmak</strong> daha kârlı ihtimalsel olarak hesaplansın.
+            </p>
+          </div>
+
+          <!-- Active Daily Rate Badge + Quick Switch to Rate Setup -->
+          <div class="shrink-0 flex items-center gap-2">
+            <div class="px-3 py-1.5 rounded-xl bg-dark-950 border border-brand-500/30 text-xs font-mono font-bold flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+              <span class="text-slate-300">TL Faiz:</span>
+              <span class="text-brand-400 font-bold">%<span class="active-rate-shared">1.50</span></span>
+              <span class="text-slate-500 text-[10px]">/ gün</span>
+            </div>
+            <button
+              type="button"
+              title="Faiz Oranını Değiştir"
+              class="switch-adjust-rate-btn px-2.5 py-1.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>Oranı Değiştir</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GİRDİ FORMU: DOLAR TUTARI, KUR, TARİH ARALIĞI & ORTALAMA ARTIŞ -->
+      <section class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+
+        <!-- 1. Yatırılacak Dolar Tutarı ($) ve Güncel USD/TRY Kuru -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Yatırılacak Dolar Tutarı -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="fxUsdAmountInput" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                Yatırılacak Dolar Tutarı ($)
+              </label>
+              <span class="text-[11px] font-mono text-emerald-400 font-semibold">Hedef: USD</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-emerald-400 font-mono text-xl font-bold">$</span>
+              <input
+                type="text"
+                id="fxUsdAmountInput"
+                value="1000"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border-2 border-slate-700/80 focus:border-brand-500 rounded-2xl pl-10 pr-4 py-2.5 text-white font-mono text-lg sm:text-xl font-bold outline-none transition"
+                placeholder="1000"
+              />
+            </div>
+            <!-- Hızlı USD Chipleri -->
+            <div class="grid grid-cols-5 gap-1.5 mt-2">
+              <button type="button" class="fx-usd-chip py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 text-slate-300 font-mono text-[11px] font-semibold border border-slate-800 transition cursor-pointer" data-usd="500">$500</button>
+              <button type="button" class="fx-usd-chip py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 text-slate-300 font-mono text-[11px] font-semibold border border-slate-800 transition cursor-pointer" data-usd="1000">$1K</button>
+              <button type="button" class="fx-usd-chip py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 text-slate-300 font-mono text-[11px] font-semibold border border-slate-800 transition cursor-pointer" data-usd="2500">$2.5K</button>
+              <button type="button" class="fx-usd-chip py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 text-slate-300 font-mono text-[11px] font-semibold border border-slate-800 transition cursor-pointer" data-usd="5000">$5K</button>
+              <button type="button" class="fx-usd-chip py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 active:bg-brand-600 text-slate-300 font-mono text-[11px] font-semibold border border-slate-800 transition cursor-pointer" data-usd="10000">$10K</button>
+            </div>
+          </div>
+
+          <!-- Güncel Dolar Kuru (USD/TRY) -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="fxCurrentRateInput" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                Şu Anki Dolar Kuru (1$ = ₺)
+              </label>
+              <span class="text-[11px] font-mono text-slate-400">Anlık Kur</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-mono text-xl font-bold">₺</span>
+              <input
+                type="text"
+                id="fxCurrentRateInput"
+                value="34.50"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border-2 border-slate-700/80 focus:border-brand-500 rounded-2xl pl-10 pr-4 py-2.5 text-white font-mono text-lg sm:text-xl font-bold outline-none transition"
+                placeholder="34.50"
+              />
+            </div>
+            <!-- Bugün Yatırılırsa Gereken TL Anapara Özeti -->
+            <div class="mt-2 px-3 py-1.5 rounded-xl bg-dark-950/90 border border-slate-800 flex items-center justify-between text-xs">
+              <span class="text-slate-400">Şu Anki TL Karşılığı (Faizdeki Anapara):</span>
+              <span class="font-mono font-bold text-brand-400" id="fxRequiredTlDisplay">₺34.500,00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Parayı Yatırabileceğiniz Tarih Aralığı -->
+        <div class="pt-3 border-t border-slate-800/80 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                Parayı Yatırabileceğiniz Tarih Aralığı
+              </label>
+              <p class="text-[11px] text-slate-400">Bugünden son yatırım yapabileceğiniz tarihe kadar olan pencereyi seçin</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold" id="fxDaysCountBadge">
+              30 Gün (1.0 Ay)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="fxStartDateInput" class="block text-[11px] font-semibold text-slate-400 mb-1">Başlangıç Tarihi (Şimdi)</label>
+              <input
+                type="date"
+                id="fxStartDateInput"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-white font-mono text-sm font-bold outline-none transition"
+              />
+            </div>
+            <div>
+              <label for="fxEndDateInput" class="block text-[11px] font-semibold text-slate-400 mb-1">Son Yatırım Tarihi (Vade Sonu)</label>
+              <input
+                type="date"
+                id="fxEndDateInput"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-white font-mono text-sm font-bold outline-none transition"
+              />
+            </div>
+          </div>
+
+          <!-- Hızlı Gün Aralığı Seçiciler -->
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-days="7">7 Gün</button>
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-days="15">15 Gün</button>
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-brand-600 border-brand-500 text-white shadow" data-days="30">30 Gün (1 Ay)</button>
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-days="45">45 Gün</button>
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-days="60">60 Gün (2 Ay)</button>
+            <button type="button" class="fx-date-chip py-2 rounded-xl font-mono text-xs font-bold border transition cursor-pointer bg-dark-850 border-slate-800 text-slate-300 hover:text-white" data-days="90">90 Gün (3 Ay)</button>
+          </div>
+        </div>
+
+        <!-- 3. Ortalama Dolar Artış Beklentisi & Kur Oynaklığı (İhtimalsel Model Girdileri) -->
+        <div class="pt-3 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Aylık Ortalama Dolar Artış Oranı (%) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="fxMonthlyGrowthInput" class="block text-xs font-bold text-slate-300">
+                Ortalama Aylık Dolar Artışı (%)
+              </label>
+              <span class="text-[10px] font-mono text-cyan-400" id="fxDailyGrowthPreview">Günlük Ort. Kur Artışı: +%0.0823</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">%</span>
+              <input
+                type="text"
+                id="fxMonthlyGrowthInput"
+                value="2.5"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-9 pr-3 py-2 text-white font-mono text-base font-bold outline-none transition"
+                placeholder="2.5"
+              />
+            </div>
+            <div class="grid grid-cols-5 gap-1 mt-1.5">
+              <button type="button" class="fx-growth-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-growth="1.0">%1/ay</button>
+              <button type="button" class="fx-growth-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-growth="2.5">%2.5/ay</button>
+              <button type="button" class="fx-growth-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-growth="4.0">%4/ay</button>
+              <button type="button" class="fx-growth-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-growth="6.0">%6/ay</button>
+              <button type="button" class="fx-growth-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-growth="10.0">%10/ay</button>
+            </div>
+          </div>
+
+          <!-- Kur Oynaklığı / Volatilite (İhtimal Hesabı İçin Standart Sapma %) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="fxVolatilityInput" class="block text-xs font-bold text-slate-300">
+                Kur Belirsizliği / Volatilite (±%/Ay)
+              </label>
+              <span class="text-[10px] font-mono text-slate-400">Olasılık Dağılımı</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">±%</span>
+              <input
+                type="text"
+                id="fxVolatilityInput"
+                value="3.5"
+                inputmode="decimal"
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl pl-11 pr-3 py-2 text-white font-mono text-base font-bold outline-none transition"
+                placeholder="3.5"
+              />
+            </div>
+            <div class="grid grid-cols-3 gap-1 mt-1.5">
+              <button type="button" class="fx-vol-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-vol="1.5">Düşük (±%1.5)</button>
+              <button type="button" class="fx-vol-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-vol="3.5">Normal (±%3.5)</button>
+              <button type="button" class="fx-vol-chip py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 font-mono text-[10px] font-semibold border border-slate-800 transition cursor-pointer" data-vol="7.5">Yüksek (±%7.5)</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. Faiz İşleme Modu (Bileşik / Basit) -->
+        <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-400">TL Faiz İşleme Şekli:</span>
+          <div class="flex items-center bg-dark-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold w-full sm:w-80">
+            <button
+              type="button"
+              id="fxModeCompoundBtn"
+              class="flex-1 py-1.5 rounded-lg text-center transition-all bg-brand-600 text-white font-bold shadow cursor-pointer"
+            >
+              Bileşik Faiz (Günlük Katlanan)
+            </button>
+            <button
+              type="button"
+              id="fxModeSimpleBtn"
+              class="flex-1 py-1.5 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer"
+            >
+              Basit Faiz
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SONUÇ VİTRİNİ: İHTİMALSEL KARAR BANNER & OLASILIK ÇUBUĞU -->
+      <section class="space-y-4">
+
+        <!-- KARAR BANNER -->
+        <div id="fxDecisionBanner" class="rounded-2xl bg-gradient-to-br from-emerald-950/70 via-dark-900 to-dark-900 border-2 border-emerald-500/60 p-5 shadow-2xl relative overflow-hidden transition-all">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <span id="fxDecisionBadge" class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              ✓ FAİZDE BEKLETMEK DAHA MANTIKLI
+            </span>
+            <span class="text-xs font-mono text-slate-400">İhtimalsel Simülasyon Sonucu</span>
+          </div>
+
+          <h3 id="fxDecisionTitle" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-1.5">
+            TL Faizde Bekletip Yatırmak %99.5 İhtimalle Daha Kârlı!
+          </h3>
+          <p id="fxDecisionSubtitle" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Seçilen vade sonunda dolar kuru ortalama beklentiyle artsa bile TL faiz getiriniz kur artışını solluyor.
+          </p>
+
+          <!-- Olasılık Karşılaştırma Çubuğu -->
+          <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="text-emerald-400 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span>TL Faizde Bekletme Kazanma İhtimali: <strong id="fxWinProbInterest" class="font-mono text-sm">%99.5</strong></span>
+              </span>
+              <span class="text-amber-400 flex items-center gap-1.5">
+                <span>Şimdi Yatırma İhtimali: <strong id="fxWinProbNow" class="font-mono text-sm">%0.5</strong></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              </span>
+            </div>
+
+            <div class="w-full h-4 bg-dark-950 rounded-full overflow-hidden flex p-0.5 border border-slate-800">
+              <div id="fxProbBarInterest" class="h-full bg-gradient-to-r from-brand-600 to-emerald-400 rounded-l-full transition-all duration-500" style="width: 99.5%;"></div>
+              <div id="fxProbBarNow" class="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-r-full transition-all duration-500" style="width: 0.5%;"></div>
+            </div>
+
+            <p id="fxBestDaySummary" class="text-[11px] font-mono text-slate-400 pt-0.5">
+              En yüksek avantaj vade sonunda elde ediliyor.
+            </p>
+          </div>
+        </div>
+
+        <!-- 2 ANA KARŞILAŞTIRMA KARTI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <!-- KART 1: NET BEKLENEN FARK (FAİZDE KALMANIN NET AVANTAJI) -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-brand-500/40 p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">Beklenen Net Fark (Vade Sonu)</span>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-brand-500/15 text-brand-300 border border-brand-500/30">Faiz vs Kur</span>
+            </div>
+
+            <div class="text-xs text-slate-400">Faizde Bekletip Doları Aldıktan Sonra Kalan Net Fark</div>
+            <div id="fxNetTlAdvantage" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono tracking-tight my-1 break-words">
+              +₺18.594,00
+            </div>
+            <div id="fxNetUsdAdvantage" class="text-xs font-mono font-bold text-slate-300 mb-3">
+              +$525,81 (Fazladan Kâr)
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Vade Sonu Faizli TL Bakiye:</span>
+                <span class="font-mono font-bold text-white" id="fxInterestEndTl">₺53.926,26</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Kazanılan Net TL Faiz:</span>
+                <span class="font-mono font-bold text-emerald-400" id="fxInterestEarnedTl">+₺19.426,26</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Vade Sonu Alınabilecek Toplam $:</span>
+                <span class="font-mono font-bold text-cyan-300" id="fxExtraUsdBought">$1.525,81</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KART 2: BAŞABAŞ (BREAKEVEN) KURU & BEKLENEN DOLAR MALİYETİ -->
+          <div class="rounded-2xl bg-gradient-to-br from-dark-850 to-dark-900 border-2 border-cyan-500/40 p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Başabaş (Kritik) Dolar Kuru</span>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Sınır Kur</span>
+            </div>
+
+            <div class="text-xs text-slate-400">Faiz Kazancının Eridiği Maksimum Dolar Kuru</div>
+            <div id="fxBreakevenRate" class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight my-1 break-words">
+              1$ = ₺53,93
+            </div>
+            <p id="fxBreakevenPct" class="text-[11px] text-cyan-300 font-medium mb-3">
+              Dolar %56.3 artıp ₺53,93 olana kadar TL faizde kalmak kârlıdır.
+            </p>
+
+            <div class="pt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Beklenen Vade Sonu Kur:</span>
+                <span class="font-mono font-bold text-amber-300" id="fxExpectedEndRate">₺35,36</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Vade Sonu Hedef Dolar Maliyeti:</span>
+                <span class="font-mono font-bold text-slate-200" id="fxExpectedCostTl">₺35.362,50</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- OLASILIK SENARYOLARI (İYİMSER / BAZ / KUR ŞOKU) -->
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span>🎲</span>
+              <span>İhtimalsel Kur Senaryoları (Olasılık Dağılımı Analizi)</span>
+            </h4>
+            <span class="text-[11px] font-mono text-slate-400">%10 - %50 - %90 Persentil</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Senaryo 1: Sakin Kur -->
+            <div class="p-3.5 rounded-xl bg-dark-950 border border-slate-800/90 space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-emerald-400 font-bold">Sakin Kur (İyimser)</span>
+                <span class="text-slate-500 font-mono">p10</span>
+              </div>
+              <div class="text-xs font-mono text-slate-300" id="fxScenarioLowRate">1$ = ₺33,80</div>
+              <div class="pt-1 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Faiz Net Farkı:</span>
+                <span id="fxScenarioLowNet" class="font-mono font-bold text-sm text-emerald-400">+₺20.120,00</span>
+              </div>
+            </div>
+
+            <!-- Senaryo 2: Beklenen Kur -->
+            <div class="p-3.5 rounded-xl bg-dark-950 border border-brand-500/30 space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-cyan-400 font-bold">Ortalama Beklenti (Baz)</span>
+                <span class="text-slate-500 font-mono">p50</span>
+              </div>
+              <div class="text-xs font-mono text-slate-300" id="fxScenarioBaseRate">1$ = ₺35,36</div>
+              <div class="pt-1 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Faiz Net Farkı:</span>
+                <span id="fxScenarioBaseNet" class="font-mono font-bold text-sm text-emerald-400">+₺18.563,76</span>
+              </div>
+            </div>
+
+            <!-- Senaryo 3: Kur Şoku -->
+            <div class="p-3.5 rounded-xl bg-dark-950 border border-slate-800/90 space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-amber-400 font-bold">Yüksek Kur Artışı (Stres)</span>
+                <span class="text-slate-500 font-mono">p90</span>
+              </div>
+              <div class="text-xs font-mono text-slate-300" id="fxScenarioHighRate">1$ = ₺37,00</div>
+              <div class="pt-1 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Faiz Net Farkı:</span>
+                <span id="fxScenarioHighNet" class="font-mono font-bold text-sm text-emerald-400">+₺16.926,26</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARİH ARALIĞI GÜN GÜN KARŞILAŞTIRMA TABLOSU -->
+        <div class="border border-slate-800 rounded-2xl bg-dark-900 overflow-hidden shadow-lg">
+          <button
+            type="button"
+            id="toggleFxTableBtn"
+            class="w-full px-4 py-3.5 text-left text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-between transition cursor-pointer"
+          >
+            <span class="flex items-center gap-2">
+              <span>📅</span>
+              <span class="font-bold">Tarih Aralığı Gün Gün Yatırım & Olasılık Tablosu</span>
+              <span class="text-[11px] font-mono text-slate-500" id="fxTableDaysLabel">(30 Günlük Pencere)</span>
+            </span>
+            <svg id="fxTableChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div id="fxTableContainer" class="border-t border-slate-800/80 overflow-x-auto max-h-80">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-dark-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[11px]">
+                <tr>
+                  <th class="py-2.5 px-3">Gün / Tarih</th>
+                  <th class="py-2.5 px-3 text-right">Faizdeki TL Bakiye</th>
+                  <th class="py-2.5 px-3 text-right">Beklenen Kur</th>
+                  <th class="py-2.5 px-3 text-right">Başabaş Kur</th>
+                  <th class="py-2.5 px-3 text-right">Net Avantaj (TL / $)</th>
+                  <th class="py-2.5 px-3 text-right">Kazanma İhtimali</th>
+                </tr>
+              </thead>
+              <tbody id="fxTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
   </main>
 
   <!-- ======================================================== -->
   <!-- STANDART MOBİL BOTTOM NAVIGATION BAR (ALT MENÜ)          -->
   <!-- ======================================================== -->
   <nav class="fixed bottom-0 inset-x-0 z-40 bg-dark-900/95 backdrop-blur-xl border-t border-slate-800/90 shadow-2xl safe-bottom">
-    <div class="max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4 py-2 flex items-center justify-around gap-2">
+    <div class="max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-2 sm:px-4 py-2 flex items-center justify-around gap-1.5 sm:gap-2">
       
       <!-- Nav Button 1: Faiz & Kazanç -->
       <button
         type="button"
         id="navBtnInterest"
         data-target-tab="interest"
-        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 cursor-pointer active:scale-95"
+        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-2 rounded-xl transition-all text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 cursor-pointer active:scale-95"
       >
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        <span class="text-[11px] tracking-tight">Faiz & Getiri</span>
+        <span class="text-[10px] sm:text-[11px] tracking-tight whitespace-nowrap">Faiz & Getiri</span>
       </button>
 
       <!-- Nav Button 2: Taksit Arbitrajı -->
@@ -698,30 +1132,43 @@
         type="button"
         id="navBtnInstallment"
         data-target-tab="installment"
-        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
+        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-2 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
+      >
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        <span class="text-[10px] sm:text-[11px] tracking-tight whitespace-nowrap">Taksit Arbitrajı</span>
+      </button>
+
+      <!-- Nav Button 3: Dolar vs Faiz Karar Motoru (YENİ) -->
+      <button
+        type="button"
+        id="navBtnFxDecision"
+        data-target-tab="fxdecision"
+        class="nav-tab-btn flex flex-col items-center justify-center flex-1 py-1.5 px-2 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
       >
         <div class="relative">
           <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span class="absolute -top-1 -right-2 flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
           </span>
         </div>
-        <span class="text-[11px] tracking-tight">Taksit Arbitrajı</span>
+        <span class="text-[10px] sm:text-[11px] tracking-tight whitespace-nowrap">Dolar vs Faiz</span>
       </button>
 
-      <!-- Nav Button 3: Hızlı Oran Ayarı -->
+      <!-- Nav Button 4: Hızlı Oran Ayarı -->
       <button
         type="button"
         id="navBtnRateQuick"
-        class="flex flex-col items-center justify-center flex-1 py-1.5 px-3 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
+        class="flex flex-col items-center justify-center flex-1 py-1.5 px-2 rounded-xl transition-all text-slate-400 hover:text-white font-medium cursor-pointer active:scale-95"
       >
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
-        <span class="text-[11px] tracking-tight font-mono">%<span class="active-rate-shared">1.50</span> Oran</span>
+        <span class="text-[10px] sm:text-[11px] tracking-tight font-mono whitespace-nowrap">%<span class="active-rate-shared">1.50</span> Oran</span>
       </button>
 
     </div>
@@ -743,919 +1190,1598 @@
     <p>Engrare Finans &copy; 2026 • Frontend Only • Çerezlerde Saklanır</p>
   </footer>
 
-  <!-- Script Execution (Both Inlined for 0 CDN Cache and synced with app.js) -->
+  <!-- Script Execution -->
   <script>
-    /**
-     * Engrare Finans - Günlük Faiz & Taksit Arbitraj Hesaplayıcı
-     * Tüm durumlar cookies ve localStorage ile kalıcıdır.
-     */
-    (function () {
-      'use strict';
+/**
+ * Engrare Finans - Günlük Faiz, Taksit Arbitraj & Dolar/Faiz İhtimalsel Karar Hesaplayıcı
+ * 1. Faiz Oranı Belirleme: Anapara ve günlük kazançtan faiz oranı hesaplanır ve kaydedilir.
+ * 2. Anlık Faiz Getirisi: Günlük, 30 günlük ve 60 günlük faiz kazançları anında hesaplanır.
+ * 3. Taksit Arbitrajı: Alışveriş tutarı faize yatırılarak taksitlerin aydan aya faizden ödenmesi simüle edilir,
+ *    reel cebinizden çıkan miktar ve net arbitraj kazancı hesaplanır.
+ * 4. Dolar vs TL Faiz Kararı (İhtimalsel): Yatırılacak USD tutarı, tarih aralığı, kur ve ortalama dolar artış/volatilite
+ *    parametresi ile "Şimdi Yatırmak" vs "TL Faizde Bekletip Yatırmak" ihtimalsel olarak hesaplanır.
+ * 5. Mobil Navigasyon: Standart mobil bottom navigation bar ile web & mobil tam uyumlu yapı.
+ */
 
-      const STORAGE_KEY = 'interest_calc_v4_pref';
+(function () {
+  'use strict';
 
-      const state = {
-        refPrincipal: 10000,
-        refDailyInterest: 150,
-        activeDailyRate: 1.5,
-        currentPrincipal: 10000,
-        mode: 'compound',
-        currency: '₺',
-        // Taksit arbitraj state
-        installmentTotal: 30000,
-        installmentCount: 6,
-        installmentFirstPayment: 'delayed', // 'delayed' (30 gün sonra) | 'immediate' (peşin)
-        installmentMode: 'compound', // 'compound' | 'simple'
-        activeTab: 'interest' // 'interest' | 'installment'
+  const STORAGE_KEY = 'interest_calc_v5_pref';
+  const LEGACY_STORAGE_KEY = 'interest_calc_v4_pref';
+
+  function getTodayISO() {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
+  }
+
+  function addDaysToISO(isoStr, days) {
+    const base = isoStr ? new Date(isoStr + 'T00:00:00') : new Date();
+    base.setDate(base.getDate() + days);
+    const tzOffset = base.getTimezoneOffset() * 60000;
+    return new Date(base.getTime() - tzOffset).toISOString().split('T')[0];
+  }
+
+  function formatDateTR(isoStr) {
+    if (!isoStr) return '-';
+    const parts = isoStr.split('-');
+    if (parts.length !== 3) return isoStr;
+    return parts[2] + '.' + parts[1] + '.' + parts[0];
+  }
+
+  // Standart Normal Kümülatif Dağılım Fonksiyonu (Abramowitz & Stegun yaklaşımı)
+  function normalCDF(x) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(x));
+    const d = 0.3989422804014337 * Math.exp((-x * x) / 2);
+    const prob =
+      d *
+      t *
+      (0.31938153 +
+        t *
+          (-0.356563782 +
+            t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return x > 0 ? 1 - prob : prob;
+  }
+
+  const todayISO = getTodayISO();
+  const defaultEndISO = addDaysToISO(todayISO, 30);
+
+  const state = {
+    refPrincipal: 10000,
+    refDailyInterest: 150,
+    activeDailyRate: 1.5,
+    currentPrincipal: 10000,
+    mode: 'compound',
+    currency: '₺',
+    // Taksit arbitraj state
+    installmentTotal: 30000,
+    installmentCount: 6,
+    installmentFirstPayment: 'delayed', // 'delayed' (30 gün sonra) | 'immediate' (peşin)
+    installmentMode: 'compound', // 'compound' | 'simple'
+    // Dolar vs TL Faiz Karar state
+    fxUsdAmount: 1000,
+    fxCurrentRate: 34.5,
+    fxStartDate: todayISO,
+    fxEndDate: defaultEndISO,
+    fxMonthlyGrowth: 2.5, // Aylık ortalama dolar artış beklentisi (%)
+    fxVolatility: 3.5, // Aylık kur oynaklığı / standart sapma (%)
+    fxInterestMode: 'compound', // 'compound' | 'simple'
+    activeTab: 'interest' // 'interest' | 'installment' | 'fxdecision'
+  };
+
+  function parseNumber(val) {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    let str = String(val).trim().replace(/\s+/g, '');
+    if (str.includes('.') && str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes(',')) {
+      str = str.replace(',', '.');
+    } else if (str.includes('.')) {
+      const parts = str.split('.');
+      if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
+        str = parts[0] + parts[1];
+      }
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function setCookie(name, value, days = 365) {
+    try {
+      const d = new Date();
+      d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+      document.cookie =
+        name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    } catch (e) {}
+  }
+
+  function getCookie(name) {
+    try {
+      const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? decodeURIComponent(v[2]) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function eraseCookie(name) {
+    try {
+      document.cookie = name + '=;Max-Age=-99999999;path=/;SameSite=Lax';
+    } catch (e) {}
+  }
+
+  let saveTimer = null;
+  function persistState() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const payload = JSON.stringify(state);
+      setCookie(STORAGE_KEY, payload, 365);
+      try {
+        localStorage.setItem(STORAGE_KEY, payload);
+      } catch (e) {}
+    }, 150);
+  }
+
+  function formatMoney(amount, showDecimals = true, customSymbol = null) {
+    const sym = customSymbol !== null ? customSymbol : state.currency;
+    if (isNaN(amount) || amount === null) return sym + '0';
+    const decimals = showDecimals ? 2 : 0;
+    const sign = amount < 0 ? '-' : '';
+    return (
+      sign +
+      sym +
+      Math.abs(Number(amount)).toLocaleString('tr-TR', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      })
+    );
+  }
+
+  function formatTL(amount, showDecimals = true) {
+    return formatMoney(amount, showDecimals, '₺');
+  }
+
+  function formatUSD(amount, showDecimals = true) {
+    return formatMoney(amount, showDecimals, '
+</body>
+</html>
+);
+  }
+
+  function formatRate(rate) {
+    if (isNaN(rate) || rate === null) return '0.00';
+    return Number(rate).toFixed(4).replace(/\.?0+$/, '') || '0';
+  }
+
+  function initApp() {
+    const elements = {
+      // Tabs
+      tabContentInterest: document.getElementById('tabContentInterest'),
+      tabContentInstallment: document.getElementById('tabContentInstallment'),
+      tabContentFxDecision: document.getElementById('tabContentFxDecision'),
+      desktopTabBtns: document.querySelectorAll('.desktop-tab-btn'),
+      navTabBtns: document.querySelectorAll('.nav-tab-btn'),
+      navBtnInterest: document.getElementById('navBtnInterest'),
+      navBtnInstallment: document.getElementById('navBtnInstallment'),
+      navBtnFxDecision: document.getElementById('navBtnFxDecision'),
+      navBtnRateQuick: document.getElementById('navBtnRateQuick'),
+      switchAndAdjustRateBtns: document.querySelectorAll('.switch-adjust-rate-btn'),
+
+      // Step 1: Rate
+      refPrincipalInput: document.getElementById('refPrincipalInput'),
+      refDailyInterestInput: document.getElementById('refDailyInterestInput'),
+      calcRatePreview: document.getElementById('calcRatePreview'),
+      saveRateBtn: document.getElementById('saveRateBtn'),
+      displayActiveRate: document.getElementById('displayActiveRate'),
+      rateInStep2Label: document.getElementById('rateInStep2Label'),
+      activeRateShared: document.querySelectorAll('.active-rate-shared'),
+
+      // Step 2: Interest Calc
+      currentPrincipalInput: document.getElementById('currentPrincipalInput'),
+      currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
+      quickChips: document.querySelectorAll('.quick-chip'),
+      modeCompoundBtn: document.getElementById('modeCompoundBtn'),
+      modeSimpleBtn: document.getElementById('modeSimpleBtn'),
+      dailyProfitResult: document.getElementById('dailyProfitResult'),
+      profit30: document.getElementById('profit30'),
+      balance30: document.getElementById('balance30'),
+      roi30: document.getElementById('roi30'),
+      profit60: document.getElementById('profit60'),
+      balance60: document.getElementById('balance60'),
+      roi60: document.getElementById('roi60'),
+      toggleTableBtn: document.getElementById('toggleTableBtn'),
+      tableContainer: document.getElementById('tableContainer'),
+      tableChevron: document.getElementById('tableChevron'),
+      simpleTableBody: document.getElementById('simpleTableBody'),
+
+      // Tab 2: Installment Arbitrage
+      installmentTotalInput: document.getElementById('installmentTotalInput'),
+      installmentTotalFormatted: document.getElementById('installmentTotalFormatted'),
+      installmentChips: document.querySelectorAll('.installment-chip'),
+      instCountBtns: document.querySelectorAll('.inst-count-btn'),
+      installmentCountInput: document.getElementById('installmentCountInput'),
+      previewMonthlyInstallment: document.getElementById('previewMonthlyInstallment'),
+      firstPayDelayedBtn: document.getElementById('firstPayDelayedBtn'),
+      firstPayImmediateBtn: document.getElementById('firstPayImmediateBtn'),
+      instModeCompoundBtn: document.getElementById('instModeCompoundBtn'),
+      instModeSimpleBtn: document.getElementById('instModeSimpleBtn'),
+      realCostResult: document.getElementById('realCostResult'),
+      nominalCostLabel: document.getElementById('nominalCostLabel'),
+      freeProductBadge: document.getElementById('freeProductBadge'),
+      arbitrageDiscountPercent: document.getElementById('arbitrageDiscountPercent'),
+      totalArbitrageInterest: document.getElementById('totalArbitrageInterest'),
+      monthlyInstallmentResult: document.getElementById('monthlyInstallmentResult'),
+      remainingBalanceResult: document.getElementById('remainingBalanceResult'),
+      barRealCost: document.getElementById('barRealCost'),
+      barInterestSave: document.getElementById('barInterestSave'),
+      comparisonSummaryText: document.getElementById('comparisonSummaryText'),
+      barRealCostText: document.getElementById('barRealCostText'),
+      barInterestSaveText: document.getElementById('barInterestSaveText'),
+      toggleInstallmentTableBtn: document.getElementById('toggleInstallmentTableBtn'),
+      installmentTableContainer: document.getElementById('installmentTableContainer'),
+      instTableChevron: document.getElementById('instTableChevron'),
+      installmentTableBody: document.getElementById('installmentTableBody'),
+      tableInstallmentCountLabel: document.getElementById('tableInstallmentCountLabel'),
+
+      // Tab 3: Dolar vs TL Faiz Karar Motoru
+      fxUsdAmountInput: document.getElementById('fxUsdAmountInput'),
+      fxUsdChips: document.querySelectorAll('.fx-usd-chip'),
+      fxCurrentRateInput: document.getElementById('fxCurrentRateInput'),
+      fxRequiredTlDisplay: document.getElementById('fxRequiredTlDisplay'),
+      fxStartDateInput: document.getElementById('fxStartDateInput'),
+      fxEndDateInput: document.getElementById('fxEndDateInput'),
+      fxDateRangeChips: document.querySelectorAll('.fx-date-chip'),
+      fxDaysCountBadge: document.getElementById('fxDaysCountBadge'),
+      fxMonthlyGrowthInput: document.getElementById('fxMonthlyGrowthInput'),
+      fxGrowthChips: document.querySelectorAll('.fx-growth-chip'),
+      fxDailyGrowthPreview: document.getElementById('fxDailyGrowthPreview'),
+      fxVolatilityInput: document.getElementById('fxVolatilityInput'),
+      fxVolChips: document.querySelectorAll('.fx-vol-chip'),
+      fxModeCompoundBtn: document.getElementById('fxModeCompoundBtn'),
+      fxModeSimpleBtn: document.getElementById('fxModeSimpleBtn'),
+
+      // Tab 3 Outputs
+      fxDecisionBanner: document.getElementById('fxDecisionBanner'),
+      fxDecisionBadge: document.getElementById('fxDecisionBadge'),
+      fxDecisionTitle: document.getElementById('fxDecisionTitle'),
+      fxDecisionSubtitle: document.getElementById('fxDecisionSubtitle'),
+      fxWinProbInterest: document.getElementById('fxWinProbInterest'),
+      fxWinProbNow: document.getElementById('fxWinProbNow'),
+      fxProbBarInterest: document.getElementById('fxProbBarInterest'),
+      fxProbBarNow: document.getElementById('fxProbBarNow'),
+      fxNetTlAdvantage: document.getElementById('fxNetTlAdvantage'),
+      fxNetUsdAdvantage: document.getElementById('fxNetUsdAdvantage'),
+      fxInterestEndTl: document.getElementById('fxInterestEndTl'),
+      fxInterestEarnedTl: document.getElementById('fxInterestEarnedTl'),
+      fxExpectedEndRate: document.getElementById('fxExpectedEndRate'),
+      fxExpectedCostTl: document.getElementById('fxExpectedCostTl'),
+      fxBreakevenRate: document.getElementById('fxBreakevenRate'),
+      fxBreakevenPct: document.getElementById('fxBreakevenPct'),
+      fxExtraUsdBought: document.getElementById('fxExtraUsdBought'),
+      fxBestDaySummary: document.getElementById('fxBestDaySummary'),
+      fxScenarioLowRate: document.getElementById('fxScenarioLowRate'),
+      fxScenarioLowNet: document.getElementById('fxScenarioLowNet'),
+      fxScenarioBaseRate: document.getElementById('fxScenarioBaseRate'),
+      fxScenarioBaseNet: document.getElementById('fxScenarioBaseNet'),
+      fxScenarioHighRate: document.getElementById('fxScenarioHighRate'),
+      fxScenarioHighNet: document.getElementById('fxScenarioHighNet'),
+      toggleFxTableBtn: document.getElementById('toggleFxTableBtn'),
+      fxTableContainer: document.getElementById('fxTableContainer'),
+      fxTableChevron: document.getElementById('fxTableChevron'),
+      fxTableBody: document.getElementById('fxTableBody'),
+      fxTableDaysLabel: document.getElementById('fxTableDaysLabel'),
+
+      // Global
+      currencyButtons: document.querySelectorAll('.currency-btn'),
+      currencySymbols: document.querySelectorAll('.currency-symbol'),
+      resetAllBtn: document.getElementById('resetAllBtn'),
+      toast: document.getElementById('toast'),
+      toastMsg: document.getElementById('toastMsg')
+    };
+
+    if (!elements.refPrincipalInput || !elements.installmentTotalInput) return;
+
+    function showToast(msg) {
+      if (!elements.toast || !elements.toastMsg) return;
+      elements.toastMsg.textContent = msg;
+      elements.toast.classList.remove('translate-y-28', 'opacity-0');
+      elements.toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        elements.toast.classList.add('translate-y-28', 'opacity-0');
+        elements.toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2600);
+    }
+
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(target) {
+      if (target !== 'interest' && target !== 'installment' && target !== 'fxdecision') {
+        target = 'interest';
+      }
+      state.activeTab = target;
+
+      const panes = {
+        interest: elements.tabContentInterest,
+        installment: elements.tabContentInstallment,
+        fxdecision: elements.tabContentFxDecision
       };
 
-      function parseNumber(val) {
-        if (typeof val === 'number') return isNaN(val) ? 0 : val;
-        if (!val) return 0;
-        let str = String(val).trim().replace(/\s+/g, '');
-        if (str.includes('.') && str.includes(',')) {
-          str = str.replace(/\./g, '').replace(',', '.');
-        } else if (str.includes(',')) {
-          str = str.replace(',', '.');
-        } else if (str.includes('.')) {
-          const parts = str.split('.');
-          if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
-            str = parts[0] + parts[1];
+      Object.keys(panes).forEach(key => {
+        if (panes[key]) {
+          if (key === target) {
+            panes[key].classList.remove('hidden');
+          } else {
+            panes[key].classList.add('hidden');
           }
         }
-        const num = parseFloat(str);
-        return isNaN(num) ? 0 : num;
+      });
+
+      // Bottom Nav styling
+      elements.navTabBtns.forEach(btn => {
+        const isMatch = btn.dataset.targetTab === target;
+        if (isMatch) {
+          btn.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+          btn.classList.remove('text-slate-400', 'font-medium');
+        } else {
+          btn.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+          btn.classList.add('text-slate-400', 'font-medium');
+        }
+      });
+
+      // Desktop Tab styling
+      elements.desktopTabBtns.forEach(btn => {
+        if (btn.dataset.targetTab === target) {
+          btn.classList.add('text-white', 'bg-brand-600', 'shadow');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
+      if (target === 'installment') {
+        calculateInstallment();
+      } else if (target === 'fxdecision') {
+        calculateFxDecision();
+      } else {
+        calculateInterest();
       }
 
-      function setCookie(name, value, days = 365) {
-        try {
-          const d = new Date();
-          d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-          document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-        } catch (e) {}
-      }
+      persistState();
+    }
 
-      function getCookie(name) {
-        try {
-          const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-          return v ? decodeURIComponent(v[2]) : null;
-        } catch (e) {
-          return null;
+    elements.navTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.targetTab;
+        if (target) switchTab(target);
+      });
+    });
+
+    elements.desktopTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.targetTab;
+        if (target) switchTab(target);
+      });
+    });
+
+    if (elements.navBtnRateQuick) {
+      elements.navBtnRateQuick.addEventListener('click', () => {
+        switchTab('interest');
+        elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        elements.refPrincipalInput.focus();
+      });
+    }
+
+    elements.switchAndAdjustRateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchTab('interest');
+        elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        elements.refPrincipalInput.focus();
+      });
+    });
+
+    // --- UPDATE RATES DISPLAY ---
+    function syncRateDisplays() {
+      const rateFormatted = formatRate(state.activeDailyRate);
+      if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
+      if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
+      elements.activeRateShared.forEach(el => (el.textContent = rateFormatted));
+    }
+
+    function updateRatePreview() {
+      const p = parseNumber(elements.refPrincipalInput.value);
+      const r = parseNumber(elements.refDailyInterestInput.value);
+      if (p > 0) {
+        const calcRate = (r / p) * 100;
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calcRate.toFixed(4);
+      } else {
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%0.0000';
+      }
+    }
+
+    function updateModeUI() {
+      // Interest Mode UI
+      if (elements.modeCompoundBtn && elements.modeSimpleBtn) {
+        if (state.mode === 'compound') {
+          elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.modeCompoundBtn.classList.remove('text-slate-400');
+          elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.modeSimpleBtn.classList.add('text-slate-400');
+        } else {
+          elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.modeSimpleBtn.classList.remove('text-slate-400');
+          elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.modeCompoundBtn.classList.add('text-slate-400');
         }
       }
 
-      function eraseCookie(name) {
-        try {
-          document.cookie = name + '=;Max-Age=-99999999;path=/;SameSite=Lax';
-        } catch (e) {}
+      // Installment Mode UI
+      if (elements.instModeCompoundBtn && elements.instModeSimpleBtn) {
+        if (state.installmentMode === 'compound') {
+          elements.instModeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.instModeCompoundBtn.classList.remove('text-slate-400');
+          elements.instModeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.instModeSimpleBtn.classList.add('text-slate-400');
+        } else {
+          elements.instModeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.instModeSimpleBtn.classList.remove('text-slate-400');
+          elements.instModeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.instModeCompoundBtn.classList.add('text-slate-400');
+        }
       }
 
-      let saveTimer = null;
-      function persistState() {
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
-          const payload = JSON.stringify(state);
-          setCookie(STORAGE_KEY, payload, 365);
-          try {
-            localStorage.setItem(STORAGE_KEY, payload);
-          } catch (e) {}
-        }, 150);
+      // Installment Timing UI
+      if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
+        if (state.installmentFirstPayment === 'delayed') {
+          elements.firstPayDelayedBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.firstPayDelayedBtn.classList.remove('text-slate-400');
+          elements.firstPayImmediateBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.firstPayImmediateBtn.classList.add('text-slate-400');
+        } else {
+          elements.firstPayImmediateBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.firstPayImmediateBtn.classList.remove('text-slate-400');
+          elements.firstPayDelayedBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.firstPayDelayedBtn.classList.add('text-slate-400');
+        }
       }
 
-      function formatMoney(amount, showDecimals = true) {
-        if (isNaN(amount) || amount === null) return state.currency + '0';
-        const decimals = showDecimals ? 2 : 0;
-        return state.currency + Number(amount).toLocaleString('tr-TR', {
-          minimumFractionDigits: decimals,
-          maximumFractionDigits: decimals
+      // FX Decision Interest Mode UI
+      if (elements.fxModeCompoundBtn && elements.fxModeSimpleBtn) {
+        if (state.fxInterestMode === 'compound') {
+          elements.fxModeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeCompoundBtn.classList.remove('text-slate-400');
+          elements.fxModeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeSimpleBtn.classList.add('text-slate-400');
+        } else {
+          elements.fxModeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeSimpleBtn.classList.remove('text-slate-400');
+          elements.fxModeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeCompoundBtn.classList.add('text-slate-400');
+        }
+      }
+    }
+
+    // --- CALCULATION 1: INTEREST ONLY ---
+    function calculateInterest() {
+      const principal = parseNumber(elements.currentPrincipalInput.value);
+      state.currentPrincipal = principal;
+
+      let rate = state.activeDailyRate;
+      if (isNaN(rate) || rate <= 0) {
+        rate = 1.5;
+        state.activeDailyRate = 1.5;
+      }
+
+      const dailyRateFrac = rate / 100;
+
+      if (elements.currentPrincipalFormatted) {
+        elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
+      }
+
+      const oneDayProfit = principal * dailyRateFrac;
+      if (elements.dailyProfitResult) {
+        elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
+      }
+
+      let currentBalance = principal;
+      let cumulativeProfit = 0;
+      const breakdown = [];
+
+      for (let day = 1; day <= 60; day++) {
+        let dayProfit = 0;
+        if (state.mode === 'compound') {
+          dayProfit = currentBalance * dailyRateFrac;
+          currentBalance += dayProfit;
+          cumulativeProfit = currentBalance - principal;
+        } else {
+          dayProfit = principal * dailyRateFrac;
+          cumulativeProfit += dayProfit;
+          currentBalance = principal + cumulativeProfit;
+        }
+
+        breakdown.push({
+          day,
+          dayProfit,
+          cumulativeProfit,
+          endBalance: currentBalance,
+          roi: principal > 0 ? (cumulativeProfit / principal) * 100 : 0
         });
       }
 
-      function formatRate(rate) {
-        if (isNaN(rate) || rate === null) return '0.00';
-        return Number(rate).toFixed(4).replace(/\.?0+$/, '') || '0';
+      const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+      if (elements.profit30) elements.profit30.textContent = '+' + formatMoney(res30.cumulativeProfit);
+      if (elements.balance30) elements.balance30.textContent = formatMoney(res30.endBalance);
+      if (elements.roi30) elements.roi30.textContent = '+' + res30.roi.toFixed(1) + '%';
+
+      const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
+      if (elements.profit60) elements.profit60.textContent = '+' + formatMoney(res60.cumulativeProfit);
+      if (elements.balance60) elements.balance60.textContent = formatMoney(res60.endBalance);
+      if (elements.roi60) elements.roi60.textContent = '+' + res60.roi.toFixed(1) + '%';
+
+      renderInterestTable(breakdown);
+      persistState();
+    }
+
+    function renderInterestTable(breakdown) {
+      if (!elements.simpleTableBody) return;
+      let rowsHtml = '';
+      for (let i = 0; i < breakdown.length; i++) {
+        const item = breakdown[i];
+        let rowClass = 'hover:bg-dark-850 transition-colors';
+        let badge = '';
+
+        if (item.day === 30) {
+          rowClass += ' highlight-row-30';
+          badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
+        } else if (item.day === 60) {
+          rowClass += ' highlight-row-60';
+          badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
+        }
+
+        rowsHtml +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2 px-3 font-bold text-white whitespace-nowrap">' +
+          item.day +
+          '. Gün' +
+          badge +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-brand-400 font-semibold">+' +
+          formatMoney(item.dayProfit) +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-emerald-300 font-semibold">+' +
+          formatMoney(item.cumulativeProfit) +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-white font-bold">' +
+          formatMoney(item.endBalance) +
+          '</td>' +
+          '</tr>';
+      }
+      elements.simpleTableBody.innerHTML = rowsHtml;
+    }
+
+    // --- CALCULATION 2: INSTALLMENT ARBITRAGE ---
+    function calculateInstallment() {
+      const total = parseNumber(elements.installmentTotalInput.value);
+      state.installmentTotal = total;
+
+      let months = parseInt(elements.installmentCountInput.value, 10);
+      if (isNaN(months) || months < 1) months = 6;
+      if (months > 36) months = 36;
+      state.installmentCount = months;
+
+      if (elements.installmentTotalFormatted) {
+        elements.installmentTotalFormatted.textContent = formatMoney(total, false);
+      }
+      if (elements.nominalCostLabel) {
+        elements.nominalCostLabel.textContent = formatMoney(total);
+      }
+      if (elements.tableInstallmentCountLabel) {
+        elements.tableInstallmentCountLabel.textContent = '(' + months + ' Ay)';
       }
 
-      function initApp() {
-        const elements = {
-          // Tabs
-          tabContentInterest: document.getElementById('tabContentInterest'),
-          tabContentInstallment: document.getElementById('tabContentInstallment'),
-          desktopTabBtns: document.querySelectorAll('.desktop-tab-btn'),
-          navTabBtns: document.querySelectorAll('.nav-tab-btn'),
-          navBtnInterest: document.getElementById('navBtnInterest'),
-          navBtnInstallment: document.getElementById('navBtnInstallment'),
-          navBtnRateQuick: document.getElementById('navBtnRateQuick'),
-          switchAndAdjustRateBtn: document.getElementById('switchAndAdjustRateBtn'),
+      const monthlyInstallment = months > 0 ? total / months : 0;
+      if (elements.previewMonthlyInstallment) {
+        elements.previewMonthlyInstallment.textContent = formatMoney(monthlyInstallment);
+      }
+      if (elements.monthlyInstallmentResult) {
+        elements.monthlyInstallmentResult.textContent = formatMoney(monthlyInstallment) + ' / ay';
+      }
 
-          // Step 1: Rate
-          refPrincipalInput: document.getElementById('refPrincipalInput'),
-          refDailyInterestInput: document.getElementById('refDailyInterestInput'),
-          calcRatePreview: document.getElementById('calcRatePreview'),
-          saveRateBtn: document.getElementById('saveRateBtn'),
-          displayActiveRate: document.getElementById('displayActiveRate'),
-          rateInStep2Label: document.getElementById('rateInStep2Label'),
-          activeRateShared: document.querySelectorAll('.active-rate-shared'),
+      let rate = state.activeDailyRate;
+      if (isNaN(rate) || rate <= 0) rate = 1.5;
+      const dailyRateFrac = rate / 100;
 
-          // Step 2: Interest Calc
-          currentPrincipalInput: document.getElementById('currentPrincipalInput'),
-          currentPrincipalFormatted: document.getElementById('currentPrincipalFormatted'),
-          quickChips: document.querySelectorAll('.quick-chip'),
-          modeCompoundBtn: document.getElementById('modeCompoundBtn'),
-          modeSimpleBtn: document.getElementById('modeSimpleBtn'),
-          dailyProfitResult: document.getElementById('dailyProfitResult'),
-          profit30: document.getElementById('profit30'),
-          balance30: document.getElementById('balance30'),
-          roi30: document.getElementById('roi30'),
-          profit60: document.getElementById('profit60'),
-          balance60: document.getElementById('balance60'),
-          roi60: document.getElementById('roi60'),
-          toggleTableBtn: document.getElementById('toggleTableBtn'),
-          tableContainer: document.getElementById('tableContainer'),
-          tableChevron: document.getElementById('tableChevron'),
-          simpleTableBody: document.getElementById('simpleTableBody'),
+      let balance = total;
+      let totalInterestEarned = 0;
+      const rows = [];
+      const isDelayed = state.installmentFirstPayment === 'delayed';
 
-          // Tab 2: Installment Arbitrage
-          installmentTotalInput: document.getElementById('installmentTotalInput'),
-          installmentTotalFormatted: document.getElementById('installmentTotalFormatted'),
-          installmentChips: document.querySelectorAll('.installment-chip'),
-          instCountBtns: document.querySelectorAll('.inst-count-btn'),
-          installmentCountInput: document.getElementById('installmentCountInput'),
-          previewMonthlyInstallment: document.getElementById('previewMonthlyInstallment'),
-          firstPayDelayedBtn: document.getElementById('firstPayDelayedBtn'),
-          firstPayImmediateBtn: document.getElementById('firstPayImmediateBtn'),
-          instModeCompoundBtn: document.getElementById('instModeCompoundBtn'),
-          instModeSimpleBtn: document.getElementById('instModeSimpleBtn'),
-          realCostResult: document.getElementById('realCostResult'),
-          nominalCostLabel: document.getElementById('nominalCostLabel'),
-          freeProductBadge: document.getElementById('freeProductBadge'),
-          arbitrageDiscountPercent: document.getElementById('arbitrageDiscountPercent'),
-          totalArbitrageInterest: document.getElementById('totalArbitrageInterest'),
-          monthlyInstallmentResult: document.getElementById('monthlyInstallmentResult'),
-          remainingBalanceResult: document.getElementById('remainingBalanceResult'),
-          barRealCost: document.getElementById('barRealCost'),
-          barInterestSave: document.getElementById('barInterestSave'),
-          comparisonSummaryText: document.getElementById('comparisonSummaryText'),
-          barRealCostText: document.getElementById('barRealCostText'),
-          barInterestSaveText: document.getElementById('barInterestSaveText'),
-          toggleInstallmentTableBtn: document.getElementById('toggleInstallmentTableBtn'),
-          installmentTableContainer: document.getElementById('installmentTableContainer'),
-          instTableChevron: document.getElementById('instTableChevron'),
-          installmentTableBody: document.getElementById('installmentTableBody'),
-          tableInstallmentCountLabel: document.getElementById('tableInstallmentCountLabel'),
+      if (!isDelayed) {
+        balance = Math.max(0, balance - monthlyInstallment);
+      }
 
-          // Global
-          currencyButtons: document.querySelectorAll('.currency-btn'),
-          currencySymbols: document.querySelectorAll('.currency-symbol'),
-          resetAllBtn: document.getElementById('resetAllBtn'),
-          toast: document.getElementById('toast'),
-          toastMsg: document.getElementById('toastMsg')
+      for (let m = 1; m <= months; m++) {
+        const startBal = balance;
+        let monthInterest = 0;
+
+        if (startBal > 0) {
+          if (state.installmentMode === 'compound') {
+            const monthMultiplier = Math.pow(1 + dailyRateFrac, 30);
+            monthInterest = startBal * (monthMultiplier - 1);
+          } else {
+            monthInterest = startBal * (dailyRateFrac * 30);
+          }
+        }
+
+        const balWithInterest = startBal + monthInterest;
+        totalInterestEarned += monthInterest;
+
+        let pay = monthlyInstallment;
+        if (!isDelayed && m === months) {
+          pay = 0;
+        }
+
+        const endBal = Math.max(0, balWithInterest - pay);
+        balance = endBal;
+
+        rows.push({
+          month: m,
+          startBal,
+          monthInterest,
+          payment: pay,
+          endBal,
+          cumulativeInterest: totalInterestEarned
+        });
+      }
+
+      const realCost = Math.max(0, total - totalInterestEarned);
+      const remainingBalance = balance;
+      const discountPct = total > 0 ? (totalInterestEarned / total) * 100 : 0;
+
+      if (elements.realCostResult) {
+        elements.realCostResult.textContent = formatMoney(realCost);
+      }
+      if (elements.totalArbitrageInterest) {
+        elements.totalArbitrageInterest.textContent = '+' + formatMoney(totalInterestEarned);
+      }
+      if (elements.remainingBalanceResult) {
+        elements.remainingBalanceResult.textContent = formatMoney(remainingBalance);
+      }
+      if (elements.arbitrageDiscountPercent) {
+        elements.arbitrageDiscountPercent.textContent = '%' + discountPct.toFixed(1) + ' Net Kazanç';
+      }
+
+      if (elements.freeProductBadge) {
+        if (totalInterestEarned >= total && total > 0) {
+          elements.freeProductBadge.classList.remove('hidden');
+          elements.realCostResult.classList.add('text-emerald-400');
+          elements.realCostResult.classList.remove('text-white');
+        } else {
+          elements.freeProductBadge.classList.add('hidden');
+          elements.realCostResult.classList.remove('text-emerald-400');
+          elements.realCostResult.classList.add('text-white');
+        }
+      }
+
+      const realCostPctClamped = Math.max(0, Math.min(100, total > 0 ? (realCost / total) * 100 : 100));
+      const interestPctClamped = Math.max(0, Math.min(100, 100 - realCostPctClamped));
+
+      if (elements.barRealCost && elements.barInterestSave) {
+        elements.barRealCost.style.width = realCostPctClamped + '%';
+        elements.barInterestSave.style.width = interestPctClamped + '%';
+      }
+      if (elements.comparisonSummaryText) {
+        elements.comparisonSummaryText.textContent =
+          'Liste fiyatının %' + discountPct.toFixed(1) + "'ini faiz kazancınız ödedi!";
+      }
+      if (elements.barRealCostText) {
+        elements.barRealCostText.textContent = formatMoney(realCost) + ' (%' + realCostPctClamped.toFixed(1) + ')';
+      }
+      if (elements.barInterestSaveText) {
+        elements.barInterestSaveText.textContent =
+          '+' + formatMoney(totalInterestEarned) + ' (%' + discountPct.toFixed(1) + ')';
+      }
+
+      renderInstallmentTable(rows, total, totalInterestEarned, realCost);
+      persistState();
+    }
+
+    function renderInstallmentTable(rows, total, totalInterest, realCost) {
+      if (!elements.installmentTableBody) return;
+      let html = '';
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const isLast = i === rows.length - 1;
+        let rowClass = 'hover:bg-dark-850 transition-colors';
+        if (isLast) rowClass += ' highlight-row-30 font-bold';
+
+        html +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' +
+          r.month +
+          '. Ay (' +
+          r.month * 30 +
+          '. Gün)' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' +
+          formatMoney(r.startBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">+' +
+          formatMoney(r.monthInterest) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-rose-400">-' +
+          formatMoney(r.payment) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-white font-bold">' +
+          formatMoney(r.endBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-emerald-300 font-semibold">+' +
+          formatMoney(r.cumulativeInterest) +
+          '</td>' +
+          '</tr>';
+      }
+
+      html +=
+        '<tr class="bg-dark-950 font-bold text-white border-t-2 border-slate-700">' +
+        '<td class="py-3 px-3">TOPLAM ÖZET</td>' +
+        '<td class="py-3 px-3 text-right text-slate-400">' +
+        formatMoney(total) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-emerald-400">+' +
+        formatMoney(totalInterest) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-rose-400">-' +
+        formatMoney(total) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-brand-400">Reel: ' +
+        formatMoney(realCost) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-emerald-400">Net Kâr: +' +
+        formatMoney(totalInterest) +
+        '</td>' +
+        '</tr>';
+
+      elements.installmentTableBody.innerHTML = html;
+    }
+
+    // --- CALCULATION 3: DOLAR VS TL FAİZ İHTİMALSEL KARAR MOTORU ---
+    function calculateFxDecision() {
+      if (!elements.fxUsdAmountInput) return;
+
+      const usdAmount = Math.max(0, parseNumber(elements.fxUsdAmountInput.value));
+      const currentRate = Math.max(0.0001, parseNumber(elements.fxCurrentRateInput.value));
+      const monthlyGrowthPct = parseNumber(elements.fxMonthlyGrowthInput.value);
+      const monthlyVolPct = Math.max(0.1, parseNumber(elements.fxVolatilityInput.value));
+
+      state.fxUsdAmount = usdAmount;
+      state.fxCurrentRate = currentRate;
+      state.fxMonthlyGrowth = monthlyGrowthPct;
+      state.fxVolatility = monthlyVolPct;
+
+      const startStr = elements.fxStartDateInput.value || todayISO;
+      const endStr = elements.fxEndDateInput.value || defaultEndISO;
+      state.fxStartDate = startStr;
+      state.fxEndDate = endStr;
+
+      const dStart = new Date(startStr + 'T00:00:00');
+      const dEnd = new Date(endStr + 'T00:00:00');
+      let diffDays = Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24));
+      if (isNaN(diffDays) || diffDays < 1) diffDays = 1;
+      if (diffDays > 730) diffDays = 730; // max 2 yıl sınırı
+
+      if (elements.fxDaysCountBadge) {
+        elements.fxDaysCountBadge.textContent = diffDays + ' Gün (' + (diffDays / 30).toFixed(1) + ' Ay)';
+      }
+      if (elements.fxTableDaysLabel) {
+        elements.fxTableDaysLabel.textContent = '(' + diffDays + ' Günlük Pencere)';
+      }
+
+      // Bugün bu doları yatırmak için gereken TL anapara
+      const initialTlRequired = usdAmount * currentRate;
+      if (elements.fxRequiredTlDisplay) {
+        elements.fxRequiredTlDisplay.textContent = formatTL(initialTlRequired);
+      }
+
+      // Günlük aktif TL faiz oranı
+      let dailyInterestRatePct = state.activeDailyRate;
+      if (isNaN(dailyInterestRatePct) || dailyInterestRatePct <= 0) dailyInterestRatePct = 1.5;
+      const rIntDaily = dailyInterestRatePct / 100;
+
+      // Günlük ortalama dolar artış oranı (bileşik aylık artıştan günlüğe dönüşüm)
+      const rFxMonthly = monthlyGrowthPct / 100;
+      const rFxDaily = Math.pow(1 + Math.max(-0.99, rFxMonthly), 1 / 30) - 1;
+      if (elements.fxDailyGrowthPreview) {
+        const sign = rFxDaily >= 0 ? '+' : '';
+        elements.fxDailyGrowthPreview.textContent =
+          'Günlük Ort. Kur Artışı: ' + sign + '%' + (rFxDaily * 100).toFixed(4);
+      }
+
+      // Günlük kur volatilitesi: sigma_daily = sigma_monthly / sqrt(30)
+      const sigmaDaily = (monthlyVolPct / 100) / Math.sqrt(30);
+
+      // Gün gün simülasyon ve en kârlı yatırım tarihinin tespiti
+      const dailyRows = [];
+      let bestDayObj = null;
+
+      for (let t = 1; t <= diffDays; t++) {
+        // TL faizdeki bakiye
+        let tlBal = initialTlRequired;
+        if (state.fxInterestMode === 'compound') {
+          tlBal = initialTlRequired * Math.pow(1 + rIntDaily, t);
+        } else {
+          tlBal = initialTlRequired * (1 + rIntDaily * t);
+        }
+        const interestEarned = tlBal - initialTlRequired;
+        const interestGrowthFactor = initialTlRequired > 0 ? tlBal / initialTlRequired : 1;
+
+        // Beklenen dolar kuru (t. günde)
+        const expectedRate = currentRate * Math.pow(1 + rFxDaily, t);
+        const expectedUsdCostTl = usdAmount * expectedRate;
+
+        // Net TL avantajı (TL faizde bekleyip t. günde yatırınca elde kalan ekstra TL)
+        const netTlDiff = tlBal - expectedUsdCostTl;
+        // Net USD karşılığı (t. gündeki kurdan kaç dolar fazladan cebimizde kalır)
+        const netUsdDiff = expectedRate > 0 ? netTlDiff / expectedRate : 0;
+
+        // Başabaş (Breakeven) Dolar Kuru: Faizdeki paranın tamamının hedef doları ucu ucuna alabildiği kur
+        const breakevenRate = usdAmount > 0 ? tlBal / usdAmount : currentRate * interestGrowthFactor;
+
+        // İhtimalsel Hesap (Log-normal / Geometrik Brownian Motion yaklaşımı):
+        // Kurun t. günde breakevenRate'in altında kalma olasılığı = Faizde beklemenin kazanma olasılığı
+        const targetLogReturn = Math.log(Math.max(1e-9, interestGrowthFactor));
+        const expectedLogReturn = t * Math.log(Math.max(1e-9, 1 + rFxDaily));
+        const periodSigma = sigmaDaily * Math.sqrt(t);
+
+        let winProbInterest = 50;
+        if (periodSigma > 1e-9) {
+          const zScore = (targetLogReturn - expectedLogReturn) / periodSigma;
+          winProbInterest = Math.max(0.5, Math.min(99.5, normalCDF(zScore) * 100));
+        } else {
+          winProbInterest = targetLogReturn >= expectedLogReturn ? 99.5 : 0.5;
+        }
+
+        const dateISO = addDaysToISO(startStr, t);
+        const rowObj = {
+          day: t,
+          dateISO,
+          dateFormatted: formatDateTR(dateISO),
+          tlBal,
+          interestEarned,
+          expectedRate,
+          expectedUsdCostTl,
+          breakevenRate,
+          netTlDiff,
+          netUsdDiff,
+          winProbInterest
         };
 
-        if (!elements.refPrincipalInput || !elements.installmentTotalInput) return;
+        dailyRows.push(rowObj);
 
-        function showToast(msg) {
-          if (!elements.toast || !elements.toastMsg) return;
-          elements.toastMsg.textContent = msg;
-          elements.toast.classList.remove('translate-y-28', 'opacity-0');
-          elements.toast.classList.add('translate-y-0', 'opacity-100');
-          setTimeout(() => {
-            elements.toast.classList.add('translate-y-28', 'opacity-0');
-            elements.toast.classList.remove('translate-y-0', 'opacity-100');
-          }, 2600);
+        if (!bestDayObj || rowObj.netUsdDiff > bestDayObj.netUsdDiff) {
+          bestDayObj = rowObj;
+        }
+      }
+
+      // Vade sonu (hedef bitiş tarihi, t = diffDays) metrikleri
+      const finalRow = dailyRows[dailyRows.length - 1];
+      const winProbInt = finalRow.winProbInterest;
+      const winProbNow = 100 - winProbInt;
+
+      // 3 Olasılık Senaryosu (10. Persentil İyimser Kur, 50. Persentil Beklenen Kur, 90. Persentil Kur Şoku)
+      const periodSigmaFinal = sigmaDaily * Math.sqrt(diffDays);
+      const z90 = 1.28155; // %10 - %90 aralığı
+      const lowRate = finalRow.expectedRate * Math.exp(-z90 * periodSigmaFinal);
+      const baseRate = finalRow.expectedRate;
+      const highRate = finalRow.expectedRate * Math.exp(z90 * periodSigmaFinal);
+
+      const lowNetTl = finalRow.tlBal - usdAmount * lowRate;
+      const baseNetTl = finalRow.netTlDiff;
+      const highNetTl = finalRow.tlBal - usdAmount * highRate;
+
+      // Karar Banner Güncellemesi
+      if (elements.fxDecisionBanner && elements.fxDecisionTitle && elements.fxDecisionSubtitle && elements.fxDecisionBadge) {
+        if (winProbInt >= 52 && finalRow.netTlDiff > 0) {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-emerald-950/70 via-dark-900 to-dark-900 border-2 border-emerald-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          elements.fxDecisionBadge.textContent = '✓ FAİZDE BEKLETMEK DAHA MANTIKLI';
+          elements.fxDecisionTitle.textContent =
+            'TL Faizde Bekletip Yatırmak %' + winProbInt.toFixed(1) + ' İhtimalle Daha Kârlı!';
+          elements.fxDecisionSubtitle.textContent =
+            formatDateTR(endStr) +
+            ' tarihinde (' +
+            diffDays +
+            ' gün sonra) ' +
+            formatUSD(usdAmount, false) +
+            ' yatırdığınızda, dolar kuru ortalama beklentiyle ' +
+            formatTL(finalRow.expectedRate) +
+            ' olsa bile faiz geliriniz kur artışını solluyor ve cebinizde ekstra +' +
+            formatTL(finalRow.netTlDiff) +
+            ' (' +
+            formatUSD(finalRow.netUsdDiff) +
+            ') kâr kalıyor.';
+        } else if (winProbInt <= 48 || finalRow.netTlDiff < 0) {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-amber-950/70 via-dark-900 to-dark-900 border-2 border-amber-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          elements.fxDecisionBadge.textContent = '⚡ ŞU ANDA YATIRMAK DAHA MANTIKLI';
+          elements.fxDecisionTitle.textContent =
+            'Hiç Beklemeden Şimdi Yatırmak %' + winProbNow.toFixed(1) + ' İhtimalle Daha Kârlı!';
+          elements.fxDecisionSubtitle.textContent =
+            'Beklenen dolar artışı (' +
+            formatTL(currentRate) +
+            ' → ' +
+            formatTL(finalRow.expectedRate) +
+            ') TL faiz getirisinden daha hızlı ilerliyor. ' +
+            diffDays +
+            ' gün beklemek yerine şu anda yatırırsanız ' +
+            formatTL(Math.abs(finalRow.netTlDiff)) +
+            ' (' +
+            formatUSD(Math.abs(finalRow.netUsdDiff)) +
+            ') kur farkı zararından korunursunuz.';
+        } else {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-cyan-950/70 via-dark-900 to-dark-900 border-2 border-cyan-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+          elements.fxDecisionBadge.textContent = '⚖️ BAŞABAŞ / NÖTR BÖLGE';
+          elements.fxDecisionTitle.textContent =
+            'Faiz Getirisi ile Dolar Artışı Başabaş Noktada (%' + winProbInt.toFixed(1) + ' vs %' + winProbNow.toFixed(1) + ')';
+          elements.fxDecisionSubtitle.textContent =
+            'TL faiz kazancı ile beklenen kur artışı birbirini neredeyse tamamen dengeliyor. Kur riskini almamak için parçalı alım veya erken yatırım tercih edilebilir.';
+        }
+      }
+
+      // Olasılık Barları
+      if (elements.fxWinProbInterest) elements.fxWinProbInterest.textContent = '%' + winProbInt.toFixed(1);
+      if (elements.fxWinProbNow) elements.fxWinProbNow.textContent = '%' + winProbNow.toFixed(1);
+      if (elements.fxProbBarInterest) elements.fxProbBarInterest.style.width = winProbInt.toFixed(1) + '%';
+      if (elements.fxProbBarNow) elements.fxProbBarNow.style.width = winProbNow.toFixed(1) + '%';
+
+      // Ana Metrik Kartları
+      const signTl = finalRow.netTlDiff >= 0 ? '+' : '-';
+      if (elements.fxNetTlAdvantage) {
+        elements.fxNetTlAdvantage.textContent = signTl + formatTL(Math.abs(finalRow.netTlDiff));
+        elements.fxNetTlAdvantage.className =
+          'text-2xl sm:text-3xl font-extrabold font-mono tracking-tight my-1 break-words ' +
+          (finalRow.netTlDiff >= 0 ? 'text-emerald-400' : 'text-amber-400');
+      }
+      if (elements.fxNetUsdAdvantage) {
+        elements.fxNetUsdAdvantage.textContent =
+          (finalRow.netUsdDiff >= 0 ? '+' : '-') + formatUSD(Math.abs(finalRow.netUsdDiff)) + ' (' + (finalRow.netUsdDiff >= 0 ? 'Fazladan Kâr' : 'Kur Kaybı') + ')';
+      }
+
+      if (elements.fxInterestEndTl) elements.fxInterestEndTl.textContent = formatTL(finalRow.tlBal);
+      if (elements.fxInterestEarnedTl) elements.fxInterestEarnedTl.textContent = '+' + formatTL(finalRow.interestEarned);
+      if (elements.fxExpectedEndRate) elements.fxExpectedEndRate.textContent = formatTL(finalRow.expectedRate);
+      if (elements.fxExpectedCostTl) elements.fxExpectedCostTl.textContent = formatTL(finalRow.expectedUsdCostTl);
+
+      const breakevenIncreasePct = currentRate > 0 ? ((finalRow.breakevenRate - currentRate) / currentRate) * 100 : 0;
+      if (elements.fxBreakevenRate) elements.fxBreakevenRate.textContent = '1$ = ' + formatTL(finalRow.breakevenRate);
+      if (elements.fxBreakevenPct) {
+        elements.fxBreakevenPct.textContent =
+          'Dolar %' +
+          breakevenIncreasePct.toFixed(1) +
+          ' artıp ' +
+          formatTL(finalRow.breakevenRate) +
+          ' olana kadar TL faizde kalmak kârlıdır.';
+      }
+
+      const totalUsdBuyableAtEnd = finalRow.expectedRate > 0 ? finalRow.tlBal / finalRow.expectedRate : usdAmount;
+      if (elements.fxExtraUsdBought) {
+        elements.fxExtraUsdBought.textContent = formatUSD(totalUsdBuyableAtEnd);
+      }
+
+      if (elements.fxBestDaySummary && bestDayObj) {
+        if (bestDayObj.netTlDiff > 0) {
+          elements.fxBestDaySummary.textContent =
+            'En yüksek avantaj ' +
+            bestDayObj.dateFormatted +
+            ' (' +
+            bestDayObj.day +
+            '. gün) tarihinde: +' +
+            formatTL(bestDayObj.netTlDiff) +
+            ' (' +
+            formatUSD(bestDayObj.netUsdDiff) +
+            ') net kâr.';
+        } else {
+          elements.fxBestDaySummary.textContent =
+            'Seçilen tarih aralığında kur artışı faizden yüksek; en avantajlı hamle 0. gün (Bugün) yatırmaktır.';
+        }
+      }
+
+      // 3 Olasılık Senaryosu Kartları
+      if (elements.fxScenarioLowRate) elements.fxScenarioLowRate.textContent = '1$ = ' + formatTL(lowRate);
+      if (elements.fxScenarioLowNet) {
+        elements.fxScenarioLowNet.textContent = (lowNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(lowNetTl));
+        elements.fxScenarioLowNet.className = 'font-mono font-bold text-sm ' + (lowNetTl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      }
+
+      if (elements.fxScenarioBaseRate) elements.fxScenarioBaseRate.textContent = '1$ = ' + formatTL(baseRate);
+      if (elements.fxScenarioBaseNet) {
+        elements.fxScenarioBaseNet.textContent = (baseNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(baseNetTl));
+        elements.fxScenarioBaseNet.className = 'font-mono font-bold text-sm ' + (baseNetTl >= 0 ? 'text-emerald-400' : 'text-amber-400');
+      }
+
+      if (elements.fxScenarioHighRate) elements.fxScenarioHighRate.textContent = '1$ = ' + formatTL(highRate);
+      if (elements.fxScenarioHighNet) {
+        elements.fxScenarioHighNet.textContent = (highNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(highNetTl));
+        elements.fxScenarioHighNet.className = 'font-mono font-bold text-sm ' + (highNetTl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      }
+
+      renderFxDecisionTable(dailyRows, initialTlRequired, currentRate);
+      persistState();
+    }
+
+    function renderFxDecisionTable(rows, initialTl, currentRate) {
+      if (!elements.fxTableBody) return;
+      let html = '';
+
+      // 0. Gün (Bugün / Şimdi Yatırım) satırı
+      html +=
+        '<tr class="bg-dark-950/90 border-b border-slate-800 text-slate-300">' +
+        '<td class="py-2.5 px-3 font-bold text-amber-400 whitespace-nowrap">Bugün (Şimdi)</td>' +
+        '<td class="py-2.5 px-3 text-right font-semibold">' +
+        formatTL(initialTl) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right">' +
+        formatTL(currentRate) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right text-slate-400">' +
+        formatTL(currentRate) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right font-bold text-slate-400">₺0,00 ($0,00)</td>' +
+        '<td class="py-2.5 px-3 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-bold">Referans</span></td>' +
+        '</tr>';
+
+      // Çok uzun tarih aralıklarında tabloyu akıcı tutmak için örnekleme veya tam liste
+      const total = rows.length;
+      const step = total > 90 ? Math.ceil(total / 45) : 1;
+
+      for (let i = 0; i < total; i++) {
+        const isMilestone =
+          i === total - 1 ||
+          (i + 1) % step === 0 ||
+          rows[i].day === 7 ||
+          rows[i].day === 15 ||
+          rows[i].day === 30 ||
+          rows[i].day === 60 ||
+          rows[i].day === 90;
+        if (!isMilestone) continue;
+
+        const r = rows[i];
+        const isPositive = r.netTlDiff >= 0;
+        const isLast = i === total - 1;
+
+        let rowClass = 'hover:bg-dark-850 transition-colors';
+        if (isLast) {
+          rowClass += isPositive ? ' highlight-row-fx-win' : ' highlight-row-fx-now';
         }
 
-        // --- TAB SWITCHING LOGIC ---
-        function switchTab(target) {
-          state.activeTab = target;
+        const diffText =
+          (isPositive ? '+' : '-') +
+          formatTL(Math.abs(r.netTlDiff)) +
+          ' <span class="text-[10px] opacity-80">(' +
+          (r.netUsdDiff >= 0 ? '+' : '-') +
+          formatUSD(Math.abs(r.netUsdDiff)) +
+          ')</span>';
 
-          if (target === 'installment') {
-            elements.tabContentInterest.classList.add('hidden');
-            elements.tabContentInstallment.classList.remove('hidden');
+        const probBadgeClass =
+          r.winProbInterest >= 52
+            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+            : r.winProbInterest <= 48
+            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+            : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
 
-            // Bottom Nav styling
-            elements.navBtnInterest.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-            elements.navBtnInterest.classList.add('text-slate-400', 'font-medium');
-            elements.navBtnInstallment.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-            elements.navBtnInstallment.classList.remove('text-slate-400', 'font-medium');
+        html +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' +
+          r.day +
+          '. Gün <span class="text-[10px] text-slate-400 font-normal">(' +
+          r.dateFormatted +
+          ')</span></td>' +
+          '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">' +
+          formatTL(r.tlBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-200">' +
+          formatTL(r.expectedRate) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-cyan-300">' +
+          formatTL(r.breakevenRate) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right font-bold ' +
+          (isPositive ? 'text-emerald-400' : 'text-amber-400') +
+          '">' +
+          diffText +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+          '<span class="px-2 py-0.5 rounded border text-[10px] font-bold ' +
+          probBadgeClass +
+          '">%' +
+          r.winProbInterest.toFixed(1) +
+          ' Faiz</span>' +
+          '</td>' +
+          '</tr>';
+      }
 
-            // Desktop Tab styling
-            elements.desktopTabBtns.forEach(btn => {
-              if (btn.dataset.targetTab === 'installment') {
-                btn.classList.add('text-white', 'bg-brand-600', 'shadow');
-                btn.classList.remove('text-slate-400');
-              } else {
-                btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
-                btn.classList.add('text-slate-400');
-              }
-            });
+      elements.fxTableBody.innerHTML = html;
+    }
 
-            calculateInstallment();
-          } else {
-            elements.tabContentInstallment.classList.add('hidden');
-            elements.tabContentInterest.classList.remove('hidden');
+    // --- LOAD & PERSIST STATE ---
+    function loadPersistedState() {
+      let raw = getCookie(STORAGE_KEY) || getCookie(LEGACY_STORAGE_KEY);
+      if (!raw) {
+        try {
+          raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+        } catch (e) {}
+      }
+      if (!raw) return false;
 
-            // Bottom Nav styling
-            elements.navBtnInstallment.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-            elements.navBtnInstallment.classList.add('text-slate-400', 'font-medium');
-            elements.navBtnInterest.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-            elements.navBtnInterest.classList.remove('text-slate-400', 'font-medium');
+      try {
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return false;
 
-            // Desktop Tab styling
-            elements.desktopTabBtns.forEach(btn => {
-              if (btn.dataset.targetTab === 'interest') {
-                btn.classList.add('text-white', 'bg-brand-600', 'shadow');
-                btn.classList.remove('text-slate-400');
-              } else {
-                btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
-                btn.classList.add('text-slate-400');
-              }
-            });
+        if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
+        if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest))
+          state.refDailyInterest = Number(data.refDailyInterest);
+        if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
+          state.activeDailyRate = Number(data.activeDailyRate);
+        }
+        if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
+          state.currentPrincipal = Number(data.currentPrincipal);
+        }
+        if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
+        if (data.currency) state.currency = data.currency;
 
-            calculateInterest();
-          }
-
-          persistState();
+        // Installment properties
+        if (data.installmentTotal !== undefined && !isNaN(data.installmentTotal)) {
+          state.installmentTotal = Number(data.installmentTotal);
+        }
+        if (data.installmentCount !== undefined && !isNaN(data.installmentCount)) {
+          state.installmentCount = Number(data.installmentCount);
+        }
+        if (data.installmentFirstPayment === 'delayed' || data.installmentFirstPayment === 'immediate') {
+          state.installmentFirstPayment = data.installmentFirstPayment;
+        }
+        if (data.installmentMode === 'compound' || data.installmentMode === 'simple') {
+          state.installmentMode = data.installmentMode;
         }
 
-        elements.navTabBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const target = btn.dataset.targetTab;
-            if (target) switchTab(target);
-          });
-        });
+        // FX Decision properties
+        if (data.fxUsdAmount !== undefined && !isNaN(data.fxUsdAmount)) state.fxUsdAmount = Number(data.fxUsdAmount);
+        if (data.fxCurrentRate !== undefined && !isNaN(data.fxCurrentRate))
+          state.fxCurrentRate = Number(data.fxCurrentRate);
+        if (data.fxStartDate) state.fxStartDate = data.fxStartDate;
+        if (data.fxEndDate) state.fxEndDate = data.fxEndDate;
+        if (data.fxMonthlyGrowth !== undefined && !isNaN(data.fxMonthlyGrowth))
+          state.fxMonthlyGrowth = Number(data.fxMonthlyGrowth);
+        if (data.fxVolatility !== undefined && !isNaN(data.fxVolatility))
+          state.fxVolatility = Number(data.fxVolatility);
+        if (data.fxInterestMode === 'compound' || data.fxInterestMode === 'simple')
+          state.fxInterestMode = data.fxInterestMode;
 
-        elements.desktopTabBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const target = btn.dataset.targetTab;
-            if (target) switchTab(target);
-          });
-        });
-
-        if (elements.navBtnRateQuick) {
-          elements.navBtnRateQuick.addEventListener('click', () => {
-            switchTab('interest');
-            elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            elements.refPrincipalInput.focus();
-          });
+        if (data.activeTab === 'interest' || data.activeTab === 'installment' || data.activeTab === 'fxdecision') {
+          state.activeTab = data.activeTab;
         }
 
-        if (elements.switchAndAdjustRateBtn) {
-          elements.switchAndAdjustRateBtn.addEventListener('click', () => {
-            switchTab('interest');
-            elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            elements.refPrincipalInput.focus();
-          });
-        }
+        // Sync inputs
+        elements.refPrincipalInput.value = state.refPrincipal;
+        elements.refDailyInterestInput.value = state.refDailyInterest;
+        elements.currentPrincipalInput.value = state.currentPrincipal;
+        elements.installmentTotalInput.value = state.installmentTotal;
+        elements.installmentCountInput.value = state.installmentCount;
+
+        if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.value = state.fxUsdAmount;
+        if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.value = state.fxCurrentRate;
+        if (elements.fxStartDateInput) elements.fxStartDateInput.value = state.fxStartDate;
+        if (elements.fxEndDateInput) elements.fxEndDateInput.value = state.fxEndDate;
+        if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = state.fxMonthlyGrowth;
+        if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = state.fxVolatility;
 
-        // --- UPDATE RATES DISPLAY ---
-        function syncRateDisplays() {
-          const rateFormatted = formatRate(state.activeDailyRate);
-          if (elements.displayActiveRate) elements.displayActiveRate.textContent = rateFormatted;
-          if (elements.rateInStep2Label) elements.rateInStep2Label.textContent = rateFormatted;
-          elements.activeRateShared.forEach(el => (el.textContent = rateFormatted));
-        }
-
-        function updateRatePreview() {
-          const p = parseNumber(elements.refPrincipalInput.value);
-          const r = parseNumber(elements.refDailyInterestInput.value);
-          if (p > 0) {
-            const calcRate = (r / p) * 100;
-            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calcRate.toFixed(4);
-          } else {
-            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%0.0000';
-          }
-        }
-
-        function updateModeUI() {
-          // Interest Mode UI
-          if (elements.modeCompoundBtn && elements.modeSimpleBtn) {
-            if (state.mode === 'compound') {
-              elements.modeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.modeCompoundBtn.classList.remove('text-slate-400');
-              elements.modeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.modeSimpleBtn.classList.add('text-slate-400');
-            } else {
-              elements.modeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.modeSimpleBtn.classList.remove('text-slate-400');
-              elements.modeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.modeCompoundBtn.classList.add('text-slate-400');
-            }
-          }
-
-          // Installment Mode UI
-          if (elements.instModeCompoundBtn && elements.instModeSimpleBtn) {
-            if (state.installmentMode === 'compound') {
-              elements.instModeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.instModeCompoundBtn.classList.remove('text-slate-400');
-              elements.instModeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.instModeSimpleBtn.classList.add('text-slate-400');
-            } else {
-              elements.instModeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.instModeSimpleBtn.classList.remove('text-slate-400');
-              elements.instModeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.instModeCompoundBtn.classList.add('text-slate-400');
-            }
-          }
-
-          // Installment Timing UI
-          if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
-            if (state.installmentFirstPayment === 'delayed') {
-              elements.firstPayDelayedBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.firstPayDelayedBtn.classList.remove('text-slate-400');
-              elements.firstPayImmediateBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.firstPayImmediateBtn.classList.add('text-slate-400');
-            } else {
-              elements.firstPayImmediateBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.firstPayImmediateBtn.classList.remove('text-slate-400');
-              elements.firstPayDelayedBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
-              elements.firstPayDelayedBtn.classList.add('text-slate-400');
-            }
-          }
-        }
-
-        // --- CALCULATION 1: INTEREST ONLY ---
-        function calculateInterest() {
-          const principal = parseNumber(elements.currentPrincipalInput.value);
-          state.currentPrincipal = principal;
-
-          let rate = state.activeDailyRate;
-          if (isNaN(rate) || rate <= 0) {
-            rate = 1.5;
-            state.activeDailyRate = 1.5;
-          }
-
-          const dailyRateFrac = rate / 100;
-
-          if (elements.currentPrincipalFormatted) {
-            elements.currentPrincipalFormatted.textContent = formatMoney(principal, false);
-          }
-
-          const oneDayProfit = principal * dailyRateFrac;
-          if (elements.dailyProfitResult) {
-            elements.dailyProfitResult.textContent = formatMoney(oneDayProfit);
-          }
-
-          let currentBalance = principal;
-          let cumulativeProfit = 0;
-          const breakdown = [];
-
-          for (let day = 1; day <= 60; day++) {
-            let dayProfit = 0;
-            if (state.mode === 'compound') {
-              dayProfit = currentBalance * dailyRateFrac;
-              currentBalance += dayProfit;
-              cumulativeProfit = currentBalance - principal;
-            } else {
-              dayProfit = principal * dailyRateFrac;
-              cumulativeProfit += dayProfit;
-              currentBalance = principal + cumulativeProfit;
-            }
-
-            breakdown.push({
-              day,
-              dayProfit,
-              cumulativeProfit,
-              endBalance: currentBalance,
-              roi: principal > 0 ? (cumulativeProfit / principal) * 100 : 0
-            });
-          }
-
-          const res30 = breakdown[29] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
-          if (elements.profit30) elements.profit30.textContent = '+' + formatMoney(res30.cumulativeProfit);
-          if (elements.balance30) elements.balance30.textContent = formatMoney(res30.endBalance);
-          if (elements.roi30) elements.roi30.textContent = '+' + res30.roi.toFixed(1) + '%';
-
-          const res60 = breakdown[59] || { cumulativeProfit: 0, endBalance: principal, roi: 0 };
-          if (elements.profit60) elements.profit60.textContent = '+' + formatMoney(res60.cumulativeProfit);
-          if (elements.balance60) elements.balance60.textContent = formatMoney(res60.endBalance);
-          if (elements.roi60) elements.roi60.textContent = '+' + res60.roi.toFixed(1) + '%';
-
-          renderInterestTable(breakdown);
-          persistState();
-        }
-
-        function renderInterestTable(breakdown) {
-          if (!elements.simpleTableBody) return;
-          let rowsHtml = '';
-          for (let i = 0; i < breakdown.length; i++) {
-            const item = breakdown[i];
-            let rowClass = 'hover:bg-dark-850 transition-colors';
-            let badge = '';
-
-            if (item.day === 30) {
-              rowClass += ' highlight-row-30';
-              badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-brand-500/25 text-brand-300 font-bold">1 Ay</span>';
-            } else if (item.day === 60) {
-              rowClass += ' highlight-row-60';
-              badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
-            }
-
-            rowsHtml += '<tr class="' + rowClass + '">' +
-              '<td class="py-2 px-3 font-bold text-white whitespace-nowrap">' + item.day + '. Gün' + badge + '</td>' +
-              '<td class="py-2 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(item.dayProfit) + '</td>' +
-              '<td class="py-2 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(item.cumulativeProfit) + '</td>' +
-              '<td class="py-2 px-3 text-right text-white font-bold">' + formatMoney(item.endBalance) + '</td>' +
-              '</tr>';
-          }
-          elements.simpleTableBody.innerHTML = rowsHtml;
-        }
-
-        // --- CALCULATION 2: INSTALLMENT ARBITRAGE ---
-        function calculateInstallment() {
-          const total = parseNumber(elements.installmentTotalInput.value);
-          state.installmentTotal = total;
-
-          let months = parseInt(elements.installmentCountInput.value, 10);
-          if (isNaN(months) || months < 1) months = 6;
-          if (months > 36) months = 36;
-          state.installmentCount = months;
-
-          if (elements.installmentTotalFormatted) {
-            elements.installmentTotalFormatted.textContent = formatMoney(total, false);
-          }
-          if (elements.nominalCostLabel) {
-            elements.nominalCostLabel.textContent = formatMoney(total);
-          }
-          if (elements.tableInstallmentCountLabel) {
-            elements.tableInstallmentCountLabel.textContent = '(' + months + ' Ay)';
-          }
-
-          const monthlyInstallment = months > 0 ? (total / months) : 0;
-          if (elements.previewMonthlyInstallment) {
-            elements.previewMonthlyInstallment.textContent = formatMoney(monthlyInstallment);
-          }
-          if (elements.monthlyInstallmentResult) {
-            elements.monthlyInstallmentResult.textContent = formatMoney(monthlyInstallment) + ' / ay';
-          }
-
-          // Active daily rate
-          let rate = state.activeDailyRate;
-          if (isNaN(rate) || rate <= 0) rate = 1.5;
-          const dailyRateFrac = rate / 100;
-
-          // Simulation Loop
-          let balance = total;
-          let totalInterestEarned = 0;
-          const rows = [];
-          const isDelayed = state.installmentFirstPayment === 'delayed';
-
-          // If immediate first payment, deduct 1 installment at day 0
-          if (!isDelayed) {
-            balance = Math.max(0, balance - monthlyInstallment);
-          }
-
-          for (let m = 1; m <= months; m++) {
-            const startBal = balance;
-            let monthInterest = 0;
-
-            if (startBal > 0) {
-              if (state.installmentMode === 'compound') {
-                const monthMultiplier = Math.pow(1 + dailyRateFrac, 30);
-                monthInterest = startBal * (monthMultiplier - 1);
-              } else {
-                monthInterest = startBal * (dailyRateFrac * 30);
-              }
-            }
-
-            const balWithInterest = startBal + monthInterest;
-            totalInterestEarned += monthInterest;
-
-            // Payment for this month
-            // If immediate, m = months had payment at start, so months-th payment was paid at month 0?
-            // Standard: If immediate: 1st installment paid now (month 0). Remaining (months - 1) paid at end of months 1..(months-1).
-            // At month 'months', all installments are already settled.
-            let pay = monthlyInstallment;
-            if (!isDelayed && m === months) {
-              pay = 0; // already paid 1st upfront
-            }
-
-            const endBal = Math.max(0, balWithInterest - pay);
-            balance = endBal;
-
-            rows.push({
-              month: m,
-              startBal,
-              monthInterest,
-              payment: pay,
-              endBal,
-              cumulativeInterest: totalInterestEarned
-            });
-          }
-
-          // Final metrics
-          const realCost = Math.max(0, total - totalInterestEarned);
-          const remainingBalance = balance;
-          const discountPct = total > 0 ? (totalInterestEarned / total) * 100 : 0;
-
-          // Display hero metrics
-          if (elements.realCostResult) {
-            elements.realCostResult.textContent = formatMoney(realCost);
-          }
-          if (elements.totalArbitrageInterest) {
-            elements.totalArbitrageInterest.textContent = '+' + formatMoney(totalInterestEarned);
-          }
-          if (elements.remainingBalanceResult) {
-            elements.remainingBalanceResult.textContent = formatMoney(remainingBalance);
-          }
-          if (elements.arbitrageDiscountPercent) {
-            elements.arbitrageDiscountPercent.textContent = '%' + discountPct.toFixed(1) + ' Net Kazanç';
-          }
-
-          // Free Product Badge
-          if (elements.freeProductBadge) {
-            if (totalInterestEarned >= total && total > 0) {
-              elements.freeProductBadge.classList.remove('hidden');
-              elements.realCostResult.classList.add('text-emerald-400');
-              elements.realCostResult.classList.remove('text-white');
-            } else {
-              elements.freeProductBadge.classList.add('hidden');
-              elements.realCostResult.classList.remove('text-emerald-400');
-              elements.realCostResult.classList.add('text-white');
-            }
-          }
-
-          // Visual Progress Bar
-          const realCostPctClamped = Math.max(0, Math.min(100, total > 0 ? (realCost / total) * 100 : 100));
-          const interestPctClamped = Math.max(0, Math.min(100, 100 - realCostPctClamped));
-
-          if (elements.barRealCost && elements.barInterestSave) {
-            elements.barRealCost.style.width = realCostPctClamped + '%';
-            elements.barInterestSave.style.width = interestPctClamped + '%';
-          }
-          if (elements.comparisonSummaryText) {
-            elements.comparisonSummaryText.textContent = 'Liste fiyatının %' + discountPct.toFixed(1) + "'ini faiz kazancınız ödedi!";
-          }
-          if (elements.barRealCostText) {
-            elements.barRealCostText.textContent = formatMoney(realCost) + ' (%' + realCostPctClamped.toFixed(1) + ')';
-          }
-          if (elements.barInterestSaveText) {
-            elements.barInterestSaveText.textContent = '+' + formatMoney(totalInterestEarned) + ' (%' + discountPct.toFixed(1) + ')';
-          }
-
-          // Render Table
-          renderInstallmentTable(rows, total, totalInterestEarned, realCost, months);
-          persistState();
-        }
-
-        function renderInstallmentTable(rows, total, totalInterest, realCost, months) {
-          if (!elements.installmentTableBody) return;
-          let html = '';
-
-          for (let i = 0; i < rows.length; i++) {
-            const r = rows[i];
-            const isLast = (i === rows.length - 1);
-            let rowClass = 'hover:bg-dark-850 transition-colors';
-            if (isLast) rowClass += ' highlight-row-30 font-bold';
-
-            html += '<tr class="' + rowClass + '">' +
-              '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' + r.month + '. Ay (' + (r.month * 30) + '. Gün)' + '</td>' +
-              '<td class="py-2.5 px-3 text-right text-slate-300">' + formatMoney(r.startBal) + '</td>' +
-              '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(r.monthInterest) + '</td>' +
-              '<td class="py-2.5 px-3 text-right text-rose-400">-' + formatMoney(r.payment) + '</td>' +
-              '<td class="py-2.5 px-3 text-right text-white font-bold">' + formatMoney(r.endBal) + '</td>' +
-              '<td class="py-2.5 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(r.cumulativeInterest) + '</td>' +
-              '</tr>';
-          }
-
-          // Summary Footer Row
-          html += '<tr class="bg-dark-950 font-bold text-white border-t-2 border-slate-700">' +
-            '<td class="py-3 px-3">TOPLAM ÖZET</td>' +
-            '<td class="py-3 px-3 text-right text-slate-400">' + formatMoney(total) + '</td>' +
-            '<td class="py-3 px-3 text-right text-emerald-400">+' + formatMoney(totalInterest) + '</td>' +
-            '<td class="py-3 px-3 text-right text-rose-400">-' + formatMoney(total) + '</td>' +
-            '<td class="py-3 px-3 text-right text-brand-400">Reel: ' + formatMoney(realCost) + '</td>' +
-            '<td class="py-3 px-3 text-right text-emerald-400">Net Kâr: +' + formatMoney(totalInterest) + '</td>' +
-            '</tr>';
-
-          elements.installmentTableBody.innerHTML = html;
-        }
-
-        // --- LOAD & PERSIST STATE ---
-        function loadPersistedState() {
-          let raw = getCookie(STORAGE_KEY);
-          if (!raw) {
-            try {
-              raw = localStorage.getItem(STORAGE_KEY);
-            } catch (e) {}
-          }
-          if (!raw) return false;
-
-          try {
-            const data = JSON.parse(raw);
-            if (!data || typeof data !== 'object') return false;
-
-            if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
-            if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
-            if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
-              state.activeDailyRate = Number(data.activeDailyRate);
-            }
-            if (data.currentPrincipal !== undefined && !isNaN(data.currentPrincipal)) {
-              state.currentPrincipal = Number(data.currentPrincipal);
-            }
-            if (data.mode === 'compound' || data.mode === 'simple') state.mode = data.mode;
-            if (data.currency) state.currency = data.currency;
-
-            // Installment properties
-            if (data.installmentTotal !== undefined && !isNaN(data.installmentTotal)) {
-              state.installmentTotal = Number(data.installmentTotal);
-            }
-            if (data.installmentCount !== undefined && !isNaN(data.installmentCount)) {
-              state.installmentCount = Number(data.installmentCount);
-            }
-            if (data.installmentFirstPayment === 'delayed' || data.installmentFirstPayment === 'immediate') {
-              state.installmentFirstPayment = data.installmentFirstPayment;
-            }
-            if (data.installmentMode === 'compound' || data.installmentMode === 'simple') {
-              state.installmentMode = data.installmentMode;
-            }
-            if (data.activeTab === 'interest' || data.activeTab === 'installment') {
-              state.activeTab = data.activeTab;
-            }
-
-            // Sync inputs
-            elements.refPrincipalInput.value = state.refPrincipal;
-            elements.refDailyInterestInput.value = state.refDailyInterest;
-            elements.currentPrincipalInput.value = state.currentPrincipal;
-            elements.installmentTotalInput.value = state.installmentTotal;
-            elements.installmentCountInput.value = state.installmentCount;
-
-            syncRateDisplays();
-
-            elements.currencyButtons.forEach(b => {
-              if (b.dataset.currency === state.currency) {
-                b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
-                b.classList.remove('text-slate-400');
-              } else {
-                b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
-                b.classList.add('text-slate-400');
-              }
-            });
-            elements.currencySymbols.forEach(s => (s.textContent = state.currency));
-
-            // Sync active installment count button
-            elements.instCountBtns.forEach(b => {
-              if (parseInt(b.dataset.months, 10) === state.installmentCount) {
-                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              } else {
-                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              }
-            });
-
-            updateModeUI();
-            return true;
-          } catch (e) {
-            return false;
-          }
-        }
-
-        // --- EVENT LISTENERS ---
-        ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
-          elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
-          elements.refDailyInterestInput.addEventListener(evtName, updateRatePreview);
-          elements.currentPrincipalInput.addEventListener(evtName, calculateInterest);
-          elements.installmentTotalInput.addEventListener(evtName, calculateInstallment);
-          elements.installmentCountInput.addEventListener(evtName, () => {
-            const months = parseInt(elements.installmentCountInput.value, 10);
-            elements.instCountBtns.forEach(b => {
-              if (parseInt(b.dataset.months, 10) === months) {
-                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              } else {
-                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              }
-            });
-            calculateInstallment();
-          });
-        });
-
-        // Save Rate Button
-        if (elements.saveRateBtn) {
-          elements.saveRateBtn.addEventListener('click', () => {
-            const p = parseNumber(elements.refPrincipalInput.value);
-            const r = parseNumber(elements.refDailyInterestInput.value);
-
-            if (p <= 0) {
-              showToast('Lütfen geçerli bir anapara girin.');
-              elements.refPrincipalInput.focus();
-              return;
-            }
-
-            const calculatedRate = (r / p) * 100;
-            state.refPrincipal = p;
-            state.refDailyInterest = r;
-            state.activeDailyRate = calculatedRate;
-
-            syncRateDisplays();
-            if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calculatedRate.toFixed(4);
-
-            elements.currentPrincipalInput.value = p;
-            state.currentPrincipal = p;
-
-            calculateInterest();
-            calculateInstallment();
-            showToast('✓ Faiz oranı %' + formatRate(calculatedRate) + ' olarak kaydedildi!');
-          });
-        }
-
-        // Quick Chips for Interest
-        elements.quickChips.forEach(chip => {
-          chip.addEventListener('click', () => {
-            const amt = parseFloat(chip.dataset.amt);
-            elements.currentPrincipalInput.value = amt;
-            calculateInterest();
-          });
-        });
-
-        // Quick Chips for Installment
-        elements.installmentChips.forEach(chip => {
-          chip.addEventListener('click', () => {
-            const amt = parseFloat(chip.dataset.amt);
-            elements.installmentTotalInput.value = amt;
-            calculateInstallment();
-          });
-        });
-
-        // Installment Month Buttons
-        elements.instCountBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const months = parseInt(btn.dataset.months, 10);
-            elements.installmentCountInput.value = months;
-
-            elements.instCountBtns.forEach(b => {
-              b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-              b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
-            });
-            btn.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-            btn.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
-
-            calculateInstallment();
-          });
-        });
-
-        // Installment Timing Buttons
-        if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
-          elements.firstPayDelayedBtn.addEventListener('click', () => {
-            state.installmentFirstPayment = 'delayed';
-            updateModeUI();
-            calculateInstallment();
-          });
-
-          elements.firstPayImmediateBtn.addEventListener('click', () => {
-            state.installmentFirstPayment = 'immediate';
-            updateModeUI();
-            calculateInstallment();
-          });
-        }
-
-        // Interest Modes
-        if (elements.modeCompoundBtn) {
-          elements.modeCompoundBtn.addEventListener('click', () => {
-            state.mode = 'compound';
-            updateModeUI();
-            calculateInterest();
-          });
-        }
-
-        if (elements.modeSimpleBtn) {
-          elements.modeSimpleBtn.addEventListener('click', () => {
-            state.mode = 'simple';
-            updateModeUI();
-            calculateInterest();
-          });
-        }
-
-        // Installment Modes
-        if (elements.instModeCompoundBtn) {
-          elements.instModeCompoundBtn.addEventListener('click', () => {
-            state.installmentMode = 'compound';
-            updateModeUI();
-            calculateInstallment();
-          });
-        }
-
-        if (elements.instModeSimpleBtn) {
-          elements.instModeSimpleBtn.addEventListener('click', () => {
-            state.installmentMode = 'simple';
-            updateModeUI();
-            calculateInstallment();
-          });
-        }
-
-        // Toggle Tables
-        if (elements.toggleTableBtn && elements.tableContainer) {
-          elements.toggleTableBtn.addEventListener('click', () => {
-            const isHidden = elements.tableContainer.classList.toggle('hidden');
-            if (elements.tableChevron) {
-              elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
-          });
-        }
-
-        if (elements.toggleInstallmentTableBtn && elements.installmentTableContainer) {
-          elements.toggleInstallmentTableBtn.addEventListener('click', () => {
-            const isHidden = elements.installmentTableContainer.classList.toggle('hidden');
-            if (elements.instTableChevron) {
-              elements.instTableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
-          });
-        }
-
-        // Currency buttons
-        elements.currencyButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            elements.currencyButtons.forEach(b => {
-              b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
-              b.classList.add('text-slate-400');
-            });
-            btn.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
-            btn.classList.remove('text-slate-400');
-
-            state.currency = btn.dataset.currency;
-            elements.currencySymbols.forEach(s => (s.textContent = state.currency));
-
-            calculateInterest();
-            calculateInstallment();
-          });
-        });
-
-        // Reset All
-        if (elements.resetAllBtn) {
-          elements.resetAllBtn.addEventListener('click', () => {
-            eraseCookie(STORAGE_KEY);
-            try {
-              localStorage.removeItem(STORAGE_KEY);
-            } catch (e) {}
-
-            state.refPrincipal = 10000;
-            state.refDailyInterest = 150;
-            state.activeDailyRate = 1.5;
-            state.currentPrincipal = 10000;
-            state.mode = 'compound';
-            state.currency = '₺';
-            state.installmentTotal = 30000;
-            state.installmentCount = 6;
-            state.installmentFirstPayment = 'delayed';
-            state.installmentMode = 'compound';
-            state.activeTab = 'interest';
-
-            elements.refPrincipalInput.value = 10000;
-            elements.refDailyInterestInput.value = 150;
-            elements.currentPrincipalInput.value = 10000;
-            elements.installmentTotalInput.value = 30000;
-            elements.installmentCountInput.value = 6;
-
-            elements.instCountBtns.forEach(b => {
-              if (parseInt(b.dataset.months, 10) === 6) {
-                b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              } else {
-                b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
-                b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
-              }
-            });
-
-            syncRateDisplays();
-            updateRatePreview();
-            updateModeUI();
-
-            elements.currencyButtons.forEach((b, idx) => {
-              if (idx === 0) {
-                b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
-                b.classList.remove('text-slate-400');
-              } else {
-                b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
-                b.classList.add('text-slate-400');
-              }
-            });
-            elements.currencySymbols.forEach(s => (s.textContent = '₺'));
-
-            switchTab('interest');
-            calculateInterest();
-            calculateInstallment();
-            showToast('Tüm değerler ve çerezler sıfırlandı.');
-          });
-        }
-
-        // Initialize state & calculations
-        loadPersistedState();
-        updateRatePreview();
         syncRateDisplays();
+
+        elements.currencyButtons.forEach(b => {
+          if (b.dataset.currency === state.currency) {
+            b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.add('text-slate-400');
+          }
+        });
+        elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+
+        // Sync active installment count button
+        elements.instCountBtns.forEach(b => {
+          if (parseInt(b.dataset.months, 10) === state.installmentCount) {
+            b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          } else {
+            b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          }
+        });
+
         updateModeUI();
-        switchTab(state.activeTab || 'interest');
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Set default dates in DOM if empty
+    if (elements.fxStartDateInput && !elements.fxStartDateInput.value) {
+      elements.fxStartDateInput.value = state.fxStartDate;
+    }
+    if (elements.fxEndDateInput && !elements.fxEndDateInput.value) {
+      elements.fxEndDateInput.value = state.fxEndDate;
+    }
+
+    // --- EVENT LISTENERS ---
+    ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
+      elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
+      elements.refDailyInterestInput.addEventListener(evtName, updateRatePreview);
+      elements.currentPrincipalInput.addEventListener(evtName, calculateInterest);
+      elements.installmentTotalInput.addEventListener(evtName, calculateInstallment);
+      elements.installmentCountInput.addEventListener(evtName, () => {
+        const months = parseInt(elements.installmentCountInput.value, 10);
+        elements.instCountBtns.forEach(b => {
+          if (parseInt(b.dataset.months, 10) === months) {
+            b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          } else {
+            b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          }
+        });
+        calculateInstallment();
+      });
+
+      if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxStartDateInput) elements.fxStartDateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxEndDateInput) elements.fxEndDateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxVolatilityInput) elements.fxVolatilityInput.addEventListener(evtName, calculateFxDecision);
+    });
+
+    // Save Rate Button
+    if (elements.saveRateBtn) {
+      elements.saveRateBtn.addEventListener('click', () => {
+        const p = parseNumber(elements.refPrincipalInput.value);
+        const r = parseNumber(elements.refDailyInterestInput.value);
+
+        if (p <= 0) {
+          showToast('Lütfen geçerli bir anapara girin.');
+          elements.refPrincipalInput.focus();
+          return;
+        }
+
+        const calculatedRate = (r / p) * 100;
+        state.refPrincipal = p;
+        state.refDailyInterest = r;
+        state.activeDailyRate = calculatedRate;
+
+        syncRateDisplays();
+        if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calculatedRate.toFixed(4);
+
+        elements.currentPrincipalInput.value = p;
+        state.currentPrincipal = p;
+
         calculateInterest();
         calculateInstallment();
-      }
+        calculateFxDecision();
+        showToast('✓ Faiz oranı %' + formatRate(calculatedRate) + ' olarak kaydedildi!');
+      });
+    }
 
-      if (document.getElementById('refPrincipalInput')) {
-        initApp();
-      } else {
-        document.addEventListener('DOMContentLoaded', initApp);
-      }
-    })();
-  </script>
+    // Quick Chips for Interest
+    elements.quickChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const amt = parseFloat(chip.dataset.amt);
+        elements.currentPrincipalInput.value = amt;
+        calculateInterest();
+      });
+    });
+
+    // Quick Chips for Installment
+    elements.installmentChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const amt = parseFloat(chip.dataset.amt);
+        elements.installmentTotalInput.value = amt;
+        calculateInstallment();
+      });
+    });
+
+    // Quick Chips for FX USD Amount
+    elements.fxUsdChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const amt = parseFloat(chip.dataset.usd);
+        if (elements.fxUsdAmountInput) {
+          elements.fxUsdAmountInput.value = amt;
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Date Range Chips for FX Decision
+    elements.fxDateRangeChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const days = parseInt(chip.dataset.days, 10);
+        if (!isNaN(days) && elements.fxStartDateInput && elements.fxEndDateInput) {
+          const startISO = elements.fxStartDateInput.value || getTodayISO();
+          elements.fxStartDateInput.value = startISO;
+          elements.fxEndDateInput.value = addDaysToISO(startISO, days);
+
+          elements.fxDateRangeChips.forEach(c => {
+            c.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            c.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          });
+          chip.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+          chip.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Growth Chips for FX Decision
+    elements.fxGrowthChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = parseFloat(chip.dataset.growth);
+        if (!isNaN(val) && elements.fxMonthlyGrowthInput) {
+          elements.fxMonthlyGrowthInput.value = val;
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Volatility Chips for FX Decision
+    elements.fxVolChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = parseFloat(chip.dataset.vol);
+        if (!isNaN(val) && elements.fxVolatilityInput) {
+          elements.fxVolatilityInput.value = val;
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Installment Month Buttons
+    elements.instCountBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const months = parseInt(btn.dataset.months, 10);
+        elements.installmentCountInput.value = months;
+
+        elements.instCountBtns.forEach(b => {
+          b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+          b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+        });
+        btn.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+        btn.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+
+        calculateInstallment();
+      });
+    });
+
+    // Installment Timing Buttons
+    if (elements.firstPayDelayedBtn && elements.firstPayImmediateBtn) {
+      elements.firstPayDelayedBtn.addEventListener('click', () => {
+        state.installmentFirstPayment = 'delayed';
+        updateModeUI();
+        calculateInstallment();
+      });
+
+      elements.firstPayImmediateBtn.addEventListener('click', () => {
+        state.installmentFirstPayment = 'immediate';
+        updateModeUI();
+        calculateInstallment();
+      });
+    }
+
+    // Interest Modes
+    if (elements.modeCompoundBtn) {
+      elements.modeCompoundBtn.addEventListener('click', () => {
+        state.mode = 'compound';
+        updateModeUI();
+        calculateInterest();
+      });
+    }
+
+    if (elements.modeSimpleBtn) {
+      elements.modeSimpleBtn.addEventListener('click', () => {
+        state.mode = 'simple';
+        updateModeUI();
+        calculateInterest();
+      });
+    }
+
+    // Installment Modes
+    if (elements.instModeCompoundBtn) {
+      elements.instModeCompoundBtn.addEventListener('click', () => {
+        state.installmentMode = 'compound';
+        updateModeUI();
+        calculateInstallment();
+      });
+    }
+
+    if (elements.instModeSimpleBtn) {
+      elements.instModeSimpleBtn.addEventListener('click', () => {
+        state.installmentMode = 'simple';
+        updateModeUI();
+        calculateInstallment();
+      });
+    }
+
+    // FX Decision Modes
+    if (elements.fxModeCompoundBtn) {
+      elements.fxModeCompoundBtn.addEventListener('click', () => {
+        state.fxInterestMode = 'compound';
+        updateModeUI();
+        calculateFxDecision();
+      });
+    }
+
+    if (elements.fxModeSimpleBtn) {
+      elements.fxModeSimpleBtn.addEventListener('click', () => {
+        state.fxInterestMode = 'simple';
+        updateModeUI();
+        calculateFxDecision();
+      });
+    }
+
+    // Toggle Tables
+    if (elements.toggleTableBtn && elements.tableContainer) {
+      elements.toggleTableBtn.addEventListener('click', () => {
+        const isHidden = elements.tableContainer.classList.toggle('hidden');
+        if (elements.tableChevron) {
+          elements.tableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      });
+    }
+
+    if (elements.toggleInstallmentTableBtn && elements.installmentTableContainer) {
+      elements.toggleInstallmentTableBtn.addEventListener('click', () => {
+        const isHidden = elements.installmentTableContainer.classList.toggle('hidden');
+        if (elements.instTableChevron) {
+          elements.instTableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      });
+    }
+
+    if (elements.toggleFxTableBtn && elements.fxTableContainer) {
+      elements.toggleFxTableBtn.addEventListener('click', () => {
+        const isHidden = elements.fxTableContainer.classList.toggle('hidden');
+        if (elements.fxTableChevron) {
+          elements.fxTableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      });
+    }
+
+    // Currency buttons
+    elements.currencyButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        elements.currencyButtons.forEach(b => {
+          b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+          b.classList.add('text-slate-400');
+        });
+        btn.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+        btn.classList.remove('text-slate-400');
+
+        state.currency = btn.dataset.currency;
+        elements.currencySymbols.forEach(s => (s.textContent = state.currency));
+
+        calculateInterest();
+        calculateInstallment();
+        calculateFxDecision();
+      });
+    });
+
+    // Reset All
+    if (elements.resetAllBtn) {
+      elements.resetAllBtn.addEventListener('click', () => {
+        eraseCookie(STORAGE_KEY);
+        eraseCookie(LEGACY_STORAGE_KEY);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        } catch (e) {}
+
+        const freshToday = getTodayISO();
+        const freshEnd = addDaysToISO(freshToday, 30);
+
+        state.refPrincipal = 10000;
+        state.refDailyInterest = 150;
+        state.activeDailyRate = 1.5;
+        state.currentPrincipal = 10000;
+        state.mode = 'compound';
+        state.currency = '₺';
+        state.installmentTotal = 30000;
+        state.installmentCount = 6;
+        state.installmentFirstPayment = 'delayed';
+        state.installmentMode = 'compound';
+        state.fxUsdAmount = 1000;
+        state.fxCurrentRate = 34.5;
+        state.fxStartDate = freshToday;
+        state.fxEndDate = freshEnd;
+        state.fxMonthlyGrowth = 2.5;
+        state.fxVolatility = 3.5;
+        state.fxInterestMode = 'compound';
+        state.activeTab = 'interest';
+
+        elements.refPrincipalInput.value = 10000;
+        elements.refDailyInterestInput.value = 150;
+        elements.currentPrincipalInput.value = 10000;
+        elements.installmentTotalInput.value = 30000;
+        elements.installmentCountInput.value = 6;
+
+        if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.value = 1000;
+        if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.value = 34.5;
+        if (elements.fxStartDateInput) elements.fxStartDateInput.value = freshToday;
+        if (elements.fxEndDateInput) elements.fxEndDateInput.value = freshEnd;
+        if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = 2.5;
+        if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = 3.5;
+
+        elements.instCountBtns.forEach(b => {
+          if (parseInt(b.dataset.months, 10) === 6) {
+            b.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          } else {
+            b.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            b.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          }
+        });
+
+        syncRateDisplays();
+        updateRatePreview();
+        updateModeUI();
+
+        elements.currencyButtons.forEach((b, idx) => {
+          if (idx === 0) {
+            b.classList.add('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('active', 'text-white', 'bg-brand-600', 'shadow');
+            b.classList.add('text-slate-400');
+          }
+        });
+        elements.currencySymbols.forEach(s => (s.textContent = '₺'));
+
+        switchTab('interest');
+        calculateInterest();
+        calculateInstallment();
+        calculateFxDecision();
+        showToast('Tüm değerler ve çerezler sıfırlandı.');
+      });
+    }
+
+    // Initialize state & calculations
+    loadPersistedState();
+    updateRatePreview();
+    syncRateDisplays();
+    updateModeUI();
+    switchTab(state.activeTab || 'interest');
+    calculateInterest();
+    calculateInstallment();
+    calculateFxDecision();
+  }
+
+  if (document.getElementById('refPrincipalInput')) {
+    initApp();
+  } else {
+    document.addEventListener('DOMContentLoaded', initApp);
+  }
+})();
+
+</script>
 </body>
 </html>

@@ -1,16 +1,56 @@
 /**
- * Engrare Finans - Günlük Faiz & Taksit Arbitraj Hesaplayıcı
+ * Engrare Finans - Günlük Faiz, Taksit Arbitraj & Dolar/Faiz İhtimalsel Karar Hesaplayıcı
  * 1. Faiz Oranı Belirleme: Anapara ve günlük kazançtan faiz oranı hesaplanır ve kaydedilir.
  * 2. Anlık Faiz Getirisi: Günlük, 30 günlük ve 60 günlük faiz kazançları anında hesaplanır.
  * 3. Taksit Arbitrajı: Alışveriş tutarı faize yatırılarak taksitlerin aydan aya faizden ödenmesi simüle edilir,
  *    reel cebinizden çıkan miktar ve net arbitraj kazancı hesaplanır.
- * 4. Mobil Navigasyon: Standart mobil bottom navigation bar ile web & mobil tam uyumlu yapı.
+ * 4. Dolar vs TL Faiz Kararı (İhtimalsel): Yatırılacak USD tutarı, tarih aralığı, kur ve ortalama dolar artış/volatilite
+ *    parametresi ile "Şimdi Yatırmak" vs "TL Faizde Bekletip Yatırmak" ihtimalsel olarak hesaplanır.
+ * 5. Mobil Navigasyon: Standart mobil bottom navigation bar ile web & mobil tam uyumlu yapı.
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'interest_calc_v4_pref';
+  const STORAGE_KEY = 'interest_calc_v5_pref';
+  const LEGACY_STORAGE_KEY = 'interest_calc_v4_pref';
+
+  function getTodayISO() {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
+  }
+
+  function addDaysToISO(isoStr, days) {
+    const base = isoStr ? new Date(isoStr + 'T00:00:00') : new Date();
+    base.setDate(base.getDate() + days);
+    const tzOffset = base.getTimezoneOffset() * 60000;
+    return new Date(base.getTime() - tzOffset).toISOString().split('T')[0];
+  }
+
+  function formatDateTR(isoStr) {
+    if (!isoStr) return '-';
+    const parts = isoStr.split('-');
+    if (parts.length !== 3) return isoStr;
+    return parts[2] + '.' + parts[1] + '.' + parts[0];
+  }
+
+  // Standart Normal Kümülatif Dağılım Fonksiyonu (Abramowitz & Stegun yaklaşımı)
+  function normalCDF(x) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(x));
+    const d = 0.3989422804014337 * Math.exp((-x * x) / 2);
+    const prob =
+      d *
+      t *
+      (0.31938153 +
+        t *
+          (-0.356563782 +
+            t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return x > 0 ? 1 - prob : prob;
+  }
+
+  const todayISO = getTodayISO();
+  const defaultEndISO = addDaysToISO(todayISO, 30);
 
   const state = {
     refPrincipal: 10000,
@@ -24,7 +64,15 @@
     installmentCount: 6,
     installmentFirstPayment: 'delayed', // 'delayed' (30 gün sonra) | 'immediate' (peşin)
     installmentMode: 'compound', // 'compound' | 'simple'
-    activeTab: 'interest' // 'interest' | 'installment'
+    // Dolar vs TL Faiz Karar state
+    fxUsdAmount: 1000,
+    fxCurrentRate: 34.5,
+    fxStartDate: todayISO,
+    fxEndDate: defaultEndISO,
+    fxMonthlyGrowth: 2.5, // Aylık ortalama dolar artış beklentisi (%)
+    fxVolatility: 3.5, // Aylık kur oynaklığı / standart sapma (%)
+    fxInterestMode: 'compound', // 'compound' | 'simple'
+    activeTab: 'interest' // 'interest' | 'installment' | 'fxdecision'
   };
 
   function parseNumber(val) {
@@ -48,8 +96,9 @@
   function setCookie(name, value, days = 365) {
     try {
       const d = new Date();
-      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-      document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+      d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+      document.cookie =
+        name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
     } catch (e) {}
   }
 
@@ -80,13 +129,27 @@
     }, 150);
   }
 
-  function formatMoney(amount, showDecimals = true) {
-    if (isNaN(amount) || amount === null) return state.currency + '0';
+  function formatMoney(amount, showDecimals = true, customSymbol = null) {
+    const sym = customSymbol !== null ? customSymbol : state.currency;
+    if (isNaN(amount) || amount === null) return sym + '0';
     const decimals = showDecimals ? 2 : 0;
-    return state.currency + Number(amount).toLocaleString('tr-TR', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
+    const sign = amount < 0 ? '-' : '';
+    return (
+      sign +
+      sym +
+      Math.abs(Number(amount)).toLocaleString('tr-TR', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      })
+    );
+  }
+
+  function formatTL(amount, showDecimals = true) {
+    return formatMoney(amount, showDecimals, '₺');
+  }
+
+  function formatUSD(amount, showDecimals = true) {
+    return formatMoney(amount, showDecimals, '$');
   }
 
   function formatRate(rate) {
@@ -99,12 +162,14 @@
       // Tabs
       tabContentInterest: document.getElementById('tabContentInterest'),
       tabContentInstallment: document.getElementById('tabContentInstallment'),
+      tabContentFxDecision: document.getElementById('tabContentFxDecision'),
       desktopTabBtns: document.querySelectorAll('.desktop-tab-btn'),
       navTabBtns: document.querySelectorAll('.nav-tab-btn'),
       navBtnInterest: document.getElementById('navBtnInterest'),
       navBtnInstallment: document.getElementById('navBtnInstallment'),
+      navBtnFxDecision: document.getElementById('navBtnFxDecision'),
       navBtnRateQuick: document.getElementById('navBtnRateQuick'),
-      switchAndAdjustRateBtn: document.getElementById('switchAndAdjustRateBtn'),
+      switchAndAdjustRateBtns: document.querySelectorAll('.switch-adjust-rate-btn'),
 
       // Step 1: Rate
       refPrincipalInput: document.getElementById('refPrincipalInput'),
@@ -162,6 +227,54 @@
       installmentTableBody: document.getElementById('installmentTableBody'),
       tableInstallmentCountLabel: document.getElementById('tableInstallmentCountLabel'),
 
+      // Tab 3: Dolar vs TL Faiz Karar Motoru
+      fxUsdAmountInput: document.getElementById('fxUsdAmountInput'),
+      fxUsdChips: document.querySelectorAll('.fx-usd-chip'),
+      fxCurrentRateInput: document.getElementById('fxCurrentRateInput'),
+      fxRequiredTlDisplay: document.getElementById('fxRequiredTlDisplay'),
+      fxStartDateInput: document.getElementById('fxStartDateInput'),
+      fxEndDateInput: document.getElementById('fxEndDateInput'),
+      fxDateRangeChips: document.querySelectorAll('.fx-date-chip'),
+      fxDaysCountBadge: document.getElementById('fxDaysCountBadge'),
+      fxMonthlyGrowthInput: document.getElementById('fxMonthlyGrowthInput'),
+      fxGrowthChips: document.querySelectorAll('.fx-growth-chip'),
+      fxDailyGrowthPreview: document.getElementById('fxDailyGrowthPreview'),
+      fxVolatilityInput: document.getElementById('fxVolatilityInput'),
+      fxVolChips: document.querySelectorAll('.fx-vol-chip'),
+      fxModeCompoundBtn: document.getElementById('fxModeCompoundBtn'),
+      fxModeSimpleBtn: document.getElementById('fxModeSimpleBtn'),
+
+      // Tab 3 Outputs
+      fxDecisionBanner: document.getElementById('fxDecisionBanner'),
+      fxDecisionBadge: document.getElementById('fxDecisionBadge'),
+      fxDecisionTitle: document.getElementById('fxDecisionTitle'),
+      fxDecisionSubtitle: document.getElementById('fxDecisionSubtitle'),
+      fxWinProbInterest: document.getElementById('fxWinProbInterest'),
+      fxWinProbNow: document.getElementById('fxWinProbNow'),
+      fxProbBarInterest: document.getElementById('fxProbBarInterest'),
+      fxProbBarNow: document.getElementById('fxProbBarNow'),
+      fxNetTlAdvantage: document.getElementById('fxNetTlAdvantage'),
+      fxNetUsdAdvantage: document.getElementById('fxNetUsdAdvantage'),
+      fxInterestEndTl: document.getElementById('fxInterestEndTl'),
+      fxInterestEarnedTl: document.getElementById('fxInterestEarnedTl'),
+      fxExpectedEndRate: document.getElementById('fxExpectedEndRate'),
+      fxExpectedCostTl: document.getElementById('fxExpectedCostTl'),
+      fxBreakevenRate: document.getElementById('fxBreakevenRate'),
+      fxBreakevenPct: document.getElementById('fxBreakevenPct'),
+      fxExtraUsdBought: document.getElementById('fxExtraUsdBought'),
+      fxBestDaySummary: document.getElementById('fxBestDaySummary'),
+      fxScenarioLowRate: document.getElementById('fxScenarioLowRate'),
+      fxScenarioLowNet: document.getElementById('fxScenarioLowNet'),
+      fxScenarioBaseRate: document.getElementById('fxScenarioBaseRate'),
+      fxScenarioBaseNet: document.getElementById('fxScenarioBaseNet'),
+      fxScenarioHighRate: document.getElementById('fxScenarioHighRate'),
+      fxScenarioHighNet: document.getElementById('fxScenarioHighNet'),
+      toggleFxTableBtn: document.getElementById('toggleFxTableBtn'),
+      fxTableContainer: document.getElementById('fxTableContainer'),
+      fxTableChevron: document.getElementById('fxTableChevron'),
+      fxTableBody: document.getElementById('fxTableBody'),
+      fxTableDaysLabel: document.getElementById('fxTableDaysLabel'),
+
       // Global
       currencyButtons: document.querySelectorAll('.currency-btn'),
       currencySymbols: document.querySelectorAll('.currency-symbol'),
@@ -185,51 +298,55 @@
 
     // --- TAB SWITCHING LOGIC ---
     function switchTab(target) {
+      if (target !== 'interest' && target !== 'installment' && target !== 'fxdecision') {
+        target = 'interest';
+      }
       state.activeTab = target;
 
+      const panes = {
+        interest: elements.tabContentInterest,
+        installment: elements.tabContentInstallment,
+        fxdecision: elements.tabContentFxDecision
+      };
+
+      Object.keys(panes).forEach(key => {
+        if (panes[key]) {
+          if (key === target) {
+            panes[key].classList.remove('hidden');
+          } else {
+            panes[key].classList.add('hidden');
+          }
+        }
+      });
+
+      // Bottom Nav styling
+      elements.navTabBtns.forEach(btn => {
+        const isMatch = btn.dataset.targetTab === target;
+        if (isMatch) {
+          btn.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+          btn.classList.remove('text-slate-400', 'font-medium');
+        } else {
+          btn.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
+          btn.classList.add('text-slate-400', 'font-medium');
+        }
+      });
+
+      // Desktop Tab styling
+      elements.desktopTabBtns.forEach(btn => {
+        if (btn.dataset.targetTab === target) {
+          btn.classList.add('text-white', 'bg-brand-600', 'shadow');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
       if (target === 'installment') {
-        elements.tabContentInterest.classList.add('hidden');
-        elements.tabContentInstallment.classList.remove('hidden');
-
-        // Bottom Nav styling
-        elements.navBtnInterest.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        elements.navBtnInterest.classList.add('text-slate-400', 'font-medium');
-        elements.navBtnInstallment.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        elements.navBtnInstallment.classList.remove('text-slate-400', 'font-medium');
-
-        // Desktop Tab styling
-        elements.desktopTabBtns.forEach(btn => {
-          if (btn.dataset.targetTab === 'installment') {
-            btn.classList.add('text-white', 'bg-brand-600', 'shadow');
-            btn.classList.remove('text-slate-400');
-          } else {
-            btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
-            btn.classList.add('text-slate-400');
-          }
-        });
-
         calculateInstallment();
+      } else if (target === 'fxdecision') {
+        calculateFxDecision();
       } else {
-        elements.tabContentInstallment.classList.add('hidden');
-        elements.tabContentInterest.classList.remove('hidden');
-
-        // Bottom Nav styling
-        elements.navBtnInstallment.classList.remove('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        elements.navBtnInstallment.classList.add('text-slate-400', 'font-medium');
-        elements.navBtnInterest.classList.add('text-brand-400', 'font-bold', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        elements.navBtnInterest.classList.remove('text-slate-400', 'font-medium');
-
-        // Desktop Tab styling
-        elements.desktopTabBtns.forEach(btn => {
-          if (btn.dataset.targetTab === 'interest') {
-            btn.classList.add('text-white', 'bg-brand-600', 'shadow');
-            btn.classList.remove('text-slate-400');
-          } else {
-            btn.classList.remove('text-white', 'bg-brand-600', 'shadow');
-            btn.classList.add('text-slate-400');
-          }
-        });
-
         calculateInterest();
       }
 
@@ -258,13 +375,13 @@
       });
     }
 
-    if (elements.switchAndAdjustRateBtn) {
-      elements.switchAndAdjustRateBtn.addEventListener('click', () => {
+    elements.switchAndAdjustRateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
         switchTab('interest');
         elements.refPrincipalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         elements.refPrincipalInput.focus();
       });
-    }
+    });
 
     // --- UPDATE RATES DISPLAY ---
     function syncRateDisplays() {
@@ -328,6 +445,21 @@
           elements.firstPayImmediateBtn.classList.remove('text-slate-400');
           elements.firstPayDelayedBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
           elements.firstPayDelayedBtn.classList.add('text-slate-400');
+        }
+      }
+
+      // FX Decision Interest Mode UI
+      if (elements.fxModeCompoundBtn && elements.fxModeSimpleBtn) {
+        if (state.fxInterestMode === 'compound') {
+          elements.fxModeCompoundBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeCompoundBtn.classList.remove('text-slate-400');
+          elements.fxModeSimpleBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeSimpleBtn.classList.add('text-slate-400');
+        } else {
+          elements.fxModeSimpleBtn.classList.add('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeSimpleBtn.classList.remove('text-slate-400');
+          elements.fxModeCompoundBtn.classList.remove('bg-brand-600', 'text-white', 'shadow', 'font-bold');
+          elements.fxModeCompoundBtn.classList.add('text-slate-400');
         }
       }
     }
@@ -409,11 +541,24 @@
           badge = ' <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">2 Ay</span>';
         }
 
-        rowsHtml += '<tr class="' + rowClass + '">' +
-          '<td class="py-2 px-3 font-bold text-white whitespace-nowrap">' + item.day + '. Gün' + badge + '</td>' +
-          '<td class="py-2 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(item.dayProfit) + '</td>' +
-          '<td class="py-2 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(item.cumulativeProfit) + '</td>' +
-          '<td class="py-2 px-3 text-right text-white font-bold">' + formatMoney(item.endBalance) + '</td>' +
+        rowsHtml +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2 px-3 font-bold text-white whitespace-nowrap">' +
+          item.day +
+          '. Gün' +
+          badge +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-brand-400 font-semibold">+' +
+          formatMoney(item.dayProfit) +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-emerald-300 font-semibold">+' +
+          formatMoney(item.cumulativeProfit) +
+          '</td>' +
+          '<td class="py-2 px-3 text-right text-white font-bold">' +
+          formatMoney(item.endBalance) +
+          '</td>' +
           '</tr>';
       }
       elements.simpleTableBody.innerHTML = rowsHtml;
@@ -439,7 +584,7 @@
         elements.tableInstallmentCountLabel.textContent = '(' + months + ' Ay)';
       }
 
-      const monthlyInstallment = months > 0 ? (total / months) : 0;
+      const monthlyInstallment = months > 0 ? total / months : 0;
       if (elements.previewMonthlyInstallment) {
         elements.previewMonthlyInstallment.textContent = formatMoney(monthlyInstallment);
       }
@@ -447,18 +592,15 @@
         elements.monthlyInstallmentResult.textContent = formatMoney(monthlyInstallment) + ' / ay';
       }
 
-      // Active daily rate
       let rate = state.activeDailyRate;
       if (isNaN(rate) || rate <= 0) rate = 1.5;
       const dailyRateFrac = rate / 100;
 
-      // Simulation Loop
       let balance = total;
       let totalInterestEarned = 0;
       const rows = [];
       const isDelayed = state.installmentFirstPayment === 'delayed';
 
-      // If immediate first payment, deduct 1 installment at day 0
       if (!isDelayed) {
         balance = Math.max(0, balance - monthlyInstallment);
       }
@@ -481,7 +623,7 @@
 
         let pay = monthlyInstallment;
         if (!isDelayed && m === months) {
-          pay = 0; // Already paid upfront
+          pay = 0;
         }
 
         const endBal = Math.max(0, balWithInterest - pay);
@@ -497,12 +639,10 @@
         });
       }
 
-      // Final metrics
       const realCost = Math.max(0, total - totalInterestEarned);
       const remainingBalance = balance;
       const discountPct = total > 0 ? (totalInterestEarned / total) * 100 : 0;
 
-      // Display hero metrics
       if (elements.realCostResult) {
         elements.realCostResult.textContent = formatMoney(realCost);
       }
@@ -516,7 +656,6 @@
         elements.arbitrageDiscountPercent.textContent = '%' + discountPct.toFixed(1) + ' Net Kazanç';
       }
 
-      // Free Product Badge
       if (elements.freeProductBadge) {
         if (totalInterestEarned >= total && total > 0) {
           elements.freeProductBadge.classList.remove('hidden');
@@ -529,7 +668,6 @@
         }
       }
 
-      // Visual Progress Bar
       const realCostPctClamped = Math.max(0, Math.min(100, total > 0 ? (realCost / total) * 100 : 100));
       const interestPctClamped = Math.max(0, Math.min(100, 100 - realCostPctClamped));
 
@@ -538,59 +676,455 @@
         elements.barInterestSave.style.width = interestPctClamped + '%';
       }
       if (elements.comparisonSummaryText) {
-        elements.comparisonSummaryText.textContent = 'Liste fiyatının %' + discountPct.toFixed(1) + "'ini faiz kazancınız ödedi!";
+        elements.comparisonSummaryText.textContent =
+          'Liste fiyatının %' + discountPct.toFixed(1) + "'ini faiz kazancınız ödedi!";
       }
       if (elements.barRealCostText) {
         elements.barRealCostText.textContent = formatMoney(realCost) + ' (%' + realCostPctClamped.toFixed(1) + ')';
       }
       if (elements.barInterestSaveText) {
-        elements.barInterestSaveText.textContent = '+' + formatMoney(totalInterestEarned) + ' (%' + discountPct.toFixed(1) + ')';
+        elements.barInterestSaveText.textContent =
+          '+' + formatMoney(totalInterestEarned) + ' (%' + discountPct.toFixed(1) + ')';
       }
 
-      // Render Table
-      renderInstallmentTable(rows, total, totalInterestEarned, realCost, months);
+      renderInstallmentTable(rows, total, totalInterestEarned, realCost);
       persistState();
     }
 
-    function renderInstallmentTable(rows, total, totalInterest, realCost, months) {
+    function renderInstallmentTable(rows, total, totalInterest, realCost) {
       if (!elements.installmentTableBody) return;
       let html = '';
 
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        const isLast = (i === rows.length - 1);
+        const isLast = i === rows.length - 1;
         let rowClass = 'hover:bg-dark-850 transition-colors';
         if (isLast) rowClass += ' highlight-row-30 font-bold';
 
-        html += '<tr class="' + rowClass + '">' +
-          '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' + r.month + '. Ay (' + (r.month * 30) + '. Gün)' + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-slate-300">' + formatMoney(r.startBal) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">+' + formatMoney(r.monthInterest) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-rose-400">-' + formatMoney(r.payment) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-white font-bold">' + formatMoney(r.endBal) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-emerald-300 font-semibold">+' + formatMoney(r.cumulativeInterest) + '</td>' +
+        html +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' +
+          r.month +
+          '. Ay (' +
+          r.month * 30 +
+          '. Gün)' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' +
+          formatMoney(r.startBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">+' +
+          formatMoney(r.monthInterest) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-rose-400">-' +
+          formatMoney(r.payment) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-white font-bold">' +
+          formatMoney(r.endBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-emerald-300 font-semibold">+' +
+          formatMoney(r.cumulativeInterest) +
+          '</td>' +
           '</tr>';
       }
 
-      // Summary Footer Row
-      html += '<tr class="bg-dark-950 font-bold text-white border-t-2 border-slate-700">' +
+      html +=
+        '<tr class="bg-dark-950 font-bold text-white border-t-2 border-slate-700">' +
         '<td class="py-3 px-3">TOPLAM ÖZET</td>' +
-        '<td class="py-3 px-3 text-right text-slate-400">' + formatMoney(total) + '</td>' +
-        '<td class="py-3 px-3 text-right text-emerald-400">+' + formatMoney(totalInterest) + '</td>' +
-        '<td class="py-3 px-3 text-right text-rose-400">-' + formatMoney(total) + '</td>' +
-        '<td class="py-3 px-3 text-right text-brand-400">Reel: ' + formatMoney(realCost) + '</td>' +
-        '<td class="py-3 px-3 text-right text-emerald-400">Net Kâr: +' + formatMoney(totalInterest) + '</td>' +
+        '<td class="py-3 px-3 text-right text-slate-400">' +
+        formatMoney(total) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-emerald-400">+' +
+        formatMoney(totalInterest) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-rose-400">-' +
+        formatMoney(total) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-brand-400">Reel: ' +
+        formatMoney(realCost) +
+        '</td>' +
+        '<td class="py-3 px-3 text-right text-emerald-400">Net Kâr: +' +
+        formatMoney(totalInterest) +
+        '</td>' +
         '</tr>';
 
       elements.installmentTableBody.innerHTML = html;
     }
 
+    // --- CALCULATION 3: DOLAR VS TL FAİZ İHTİMALSEL KARAR MOTORU ---
+    function calculateFxDecision() {
+      if (!elements.fxUsdAmountInput) return;
+
+      const usdAmount = Math.max(0, parseNumber(elements.fxUsdAmountInput.value));
+      const currentRate = Math.max(0.0001, parseNumber(elements.fxCurrentRateInput.value));
+      const monthlyGrowthPct = parseNumber(elements.fxMonthlyGrowthInput.value);
+      const monthlyVolPct = Math.max(0.1, parseNumber(elements.fxVolatilityInput.value));
+
+      state.fxUsdAmount = usdAmount;
+      state.fxCurrentRate = currentRate;
+      state.fxMonthlyGrowth = monthlyGrowthPct;
+      state.fxVolatility = monthlyVolPct;
+
+      const startStr = elements.fxStartDateInput.value || todayISO;
+      const endStr = elements.fxEndDateInput.value || defaultEndISO;
+      state.fxStartDate = startStr;
+      state.fxEndDate = endStr;
+
+      const dStart = new Date(startStr + 'T00:00:00');
+      const dEnd = new Date(endStr + 'T00:00:00');
+      let diffDays = Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24));
+      if (isNaN(diffDays) || diffDays < 1) diffDays = 1;
+      if (diffDays > 730) diffDays = 730; // max 2 yıl sınırı
+
+      if (elements.fxDaysCountBadge) {
+        elements.fxDaysCountBadge.textContent = diffDays + ' Gün (' + (diffDays / 30).toFixed(1) + ' Ay)';
+      }
+      if (elements.fxTableDaysLabel) {
+        elements.fxTableDaysLabel.textContent = '(' + diffDays + ' Günlük Pencere)';
+      }
+
+      // Bugün bu doları yatırmak için gereken TL anapara
+      const initialTlRequired = usdAmount * currentRate;
+      if (elements.fxRequiredTlDisplay) {
+        elements.fxRequiredTlDisplay.textContent = formatTL(initialTlRequired);
+      }
+
+      // Günlük aktif TL faiz oranı
+      let dailyInterestRatePct = state.activeDailyRate;
+      if (isNaN(dailyInterestRatePct) || dailyInterestRatePct <= 0) dailyInterestRatePct = 1.5;
+      const rIntDaily = dailyInterestRatePct / 100;
+
+      // Günlük ortalama dolar artış oranı (bileşik aylık artıştan günlüğe dönüşüm)
+      const rFxMonthly = monthlyGrowthPct / 100;
+      const rFxDaily = Math.pow(1 + Math.max(-0.99, rFxMonthly), 1 / 30) - 1;
+      if (elements.fxDailyGrowthPreview) {
+        const sign = rFxDaily >= 0 ? '+' : '';
+        elements.fxDailyGrowthPreview.textContent =
+          'Günlük Ort. Kur Artışı: ' + sign + '%' + (rFxDaily * 100).toFixed(4);
+      }
+
+      // Günlük kur volatilitesi: sigma_daily = sigma_monthly / sqrt(30)
+      const sigmaDaily = (monthlyVolPct / 100) / Math.sqrt(30);
+
+      // Gün gün simülasyon ve en kârlı yatırım tarihinin tespiti
+      const dailyRows = [];
+      let bestDayObj = null;
+
+      for (let t = 1; t <= diffDays; t++) {
+        // TL faizdeki bakiye
+        let tlBal = initialTlRequired;
+        if (state.fxInterestMode === 'compound') {
+          tlBal = initialTlRequired * Math.pow(1 + rIntDaily, t);
+        } else {
+          tlBal = initialTlRequired * (1 + rIntDaily * t);
+        }
+        const interestEarned = tlBal - initialTlRequired;
+        const interestGrowthFactor = initialTlRequired > 0 ? tlBal / initialTlRequired : 1;
+
+        // Beklenen dolar kuru (t. günde)
+        const expectedRate = currentRate * Math.pow(1 + rFxDaily, t);
+        const expectedUsdCostTl = usdAmount * expectedRate;
+
+        // Net TL avantajı (TL faizde bekleyip t. günde yatırınca elde kalan ekstra TL)
+        const netTlDiff = tlBal - expectedUsdCostTl;
+        // Net USD karşılığı (t. gündeki kurdan kaç dolar fazladan cebimizde kalır)
+        const netUsdDiff = expectedRate > 0 ? netTlDiff / expectedRate : 0;
+
+        // Başabaş (Breakeven) Dolar Kuru: Faizdeki paranın tamamının hedef doları ucu ucuna alabildiği kur
+        const breakevenRate = usdAmount > 0 ? tlBal / usdAmount : currentRate * interestGrowthFactor;
+
+        // İhtimalsel Hesap (Log-normal / Geometrik Brownian Motion yaklaşımı):
+        // Kurun t. günde breakevenRate'in altında kalma olasılığı = Faizde beklemenin kazanma olasılığı
+        const targetLogReturn = Math.log(Math.max(1e-9, interestGrowthFactor));
+        const expectedLogReturn = t * Math.log(Math.max(1e-9, 1 + rFxDaily));
+        const periodSigma = sigmaDaily * Math.sqrt(t);
+
+        let winProbInterest = 50;
+        if (periodSigma > 1e-9) {
+          const zScore = (targetLogReturn - expectedLogReturn) / periodSigma;
+          winProbInterest = Math.max(0.5, Math.min(99.5, normalCDF(zScore) * 100));
+        } else {
+          winProbInterest = targetLogReturn >= expectedLogReturn ? 99.5 : 0.5;
+        }
+
+        const dateISO = addDaysToISO(startStr, t);
+        const rowObj = {
+          day: t,
+          dateISO,
+          dateFormatted: formatDateTR(dateISO),
+          tlBal,
+          interestEarned,
+          expectedRate,
+          expectedUsdCostTl,
+          breakevenRate,
+          netTlDiff,
+          netUsdDiff,
+          winProbInterest
+        };
+
+        dailyRows.push(rowObj);
+
+        if (!bestDayObj || rowObj.netUsdDiff > bestDayObj.netUsdDiff) {
+          bestDayObj = rowObj;
+        }
+      }
+
+      // Vade sonu (hedef bitiş tarihi, t = diffDays) metrikleri
+      const finalRow = dailyRows[dailyRows.length - 1];
+      const winProbInt = finalRow.winProbInterest;
+      const winProbNow = 100 - winProbInt;
+
+      // 3 Olasılık Senaryosu (10. Persentil İyimser Kur, 50. Persentil Beklenen Kur, 90. Persentil Kur Şoku)
+      const periodSigmaFinal = sigmaDaily * Math.sqrt(diffDays);
+      const z90 = 1.28155; // %10 - %90 aralığı
+      const lowRate = finalRow.expectedRate * Math.exp(-z90 * periodSigmaFinal);
+      const baseRate = finalRow.expectedRate;
+      const highRate = finalRow.expectedRate * Math.exp(z90 * periodSigmaFinal);
+
+      const lowNetTl = finalRow.tlBal - usdAmount * lowRate;
+      const baseNetTl = finalRow.netTlDiff;
+      const highNetTl = finalRow.tlBal - usdAmount * highRate;
+
+      // Karar Banner Güncellemesi
+      if (elements.fxDecisionBanner && elements.fxDecisionTitle && elements.fxDecisionSubtitle && elements.fxDecisionBadge) {
+        if (winProbInt >= 52 && finalRow.netTlDiff > 0) {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-emerald-950/70 via-dark-900 to-dark-900 border-2 border-emerald-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          elements.fxDecisionBadge.textContent = '✓ FAİZDE BEKLETMEK DAHA MANTIKLI';
+          elements.fxDecisionTitle.textContent =
+            'TL Faizde Bekletip Yatırmak %' + winProbInt.toFixed(1) + ' İhtimalle Daha Kârlı!';
+          elements.fxDecisionSubtitle.textContent =
+            formatDateTR(endStr) +
+            ' tarihinde (' +
+            diffDays +
+            ' gün sonra) ' +
+            formatUSD(usdAmount, false) +
+            ' yatırdığınızda, dolar kuru ortalama beklentiyle ' +
+            formatTL(finalRow.expectedRate) +
+            ' olsa bile faiz geliriniz kur artışını solluyor ve cebinizde ekstra +' +
+            formatTL(finalRow.netTlDiff) +
+            ' (' +
+            formatUSD(finalRow.netUsdDiff) +
+            ') kâr kalıyor.';
+        } else if (winProbInt <= 48 || finalRow.netTlDiff < 0) {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-amber-950/70 via-dark-900 to-dark-900 border-2 border-amber-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          elements.fxDecisionBadge.textContent = '⚡ ŞU ANDA YATIRMAK DAHA MANTIKLI';
+          elements.fxDecisionTitle.textContent =
+            'Hiç Beklemeden Şimdi Yatırmak %' + winProbNow.toFixed(1) + ' İhtimalle Daha Kârlı!';
+          elements.fxDecisionSubtitle.textContent =
+            'Beklenen dolar artışı (' +
+            formatTL(currentRate) +
+            ' → ' +
+            formatTL(finalRow.expectedRate) +
+            ') TL faiz getirisinden daha hızlı ilerliyor. ' +
+            diffDays +
+            ' gün beklemek yerine şu anda yatırırsanız ' +
+            formatTL(Math.abs(finalRow.netTlDiff)) +
+            ' (' +
+            formatUSD(Math.abs(finalRow.netUsdDiff)) +
+            ') kur farkı zararından korunursunuz.';
+        } else {
+          elements.fxDecisionBanner.className =
+            'rounded-2xl bg-gradient-to-br from-cyan-950/70 via-dark-900 to-dark-900 border-2 border-cyan-500/60 p-5 shadow-2xl relative overflow-hidden transition-all';
+          elements.fxDecisionBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+          elements.fxDecisionBadge.textContent = '⚖️ BAŞABAŞ / NÖTR BÖLGE';
+          elements.fxDecisionTitle.textContent =
+            'Faiz Getirisi ile Dolar Artışı Başabaş Noktada (%' + winProbInt.toFixed(1) + ' vs %' + winProbNow.toFixed(1) + ')';
+          elements.fxDecisionSubtitle.textContent =
+            'TL faiz kazancı ile beklenen kur artışı birbirini neredeyse tamamen dengeliyor. Kur riskini almamak için parçalı alım veya erken yatırım tercih edilebilir.';
+        }
+      }
+
+      // Olasılık Barları
+      if (elements.fxWinProbInterest) elements.fxWinProbInterest.textContent = '%' + winProbInt.toFixed(1);
+      if (elements.fxWinProbNow) elements.fxWinProbNow.textContent = '%' + winProbNow.toFixed(1);
+      if (elements.fxProbBarInterest) elements.fxProbBarInterest.style.width = winProbInt.toFixed(1) + '%';
+      if (elements.fxProbBarNow) elements.fxProbBarNow.style.width = winProbNow.toFixed(1) + '%';
+
+      // Ana Metrik Kartları
+      const signTl = finalRow.netTlDiff >= 0 ? '+' : '-';
+      if (elements.fxNetTlAdvantage) {
+        elements.fxNetTlAdvantage.textContent = signTl + formatTL(Math.abs(finalRow.netTlDiff));
+        elements.fxNetTlAdvantage.className =
+          'text-2xl sm:text-3xl font-extrabold font-mono tracking-tight my-1 break-words ' +
+          (finalRow.netTlDiff >= 0 ? 'text-emerald-400' : 'text-amber-400');
+      }
+      if (elements.fxNetUsdAdvantage) {
+        elements.fxNetUsdAdvantage.textContent =
+          (finalRow.netUsdDiff >= 0 ? '+' : '-') + formatUSD(Math.abs(finalRow.netUsdDiff)) + ' (' + (finalRow.netUsdDiff >= 0 ? 'Fazladan Kâr' : 'Kur Kaybı') + ')';
+      }
+
+      if (elements.fxInterestEndTl) elements.fxInterestEndTl.textContent = formatTL(finalRow.tlBal);
+      if (elements.fxInterestEarnedTl) elements.fxInterestEarnedTl.textContent = '+' + formatTL(finalRow.interestEarned);
+      if (elements.fxExpectedEndRate) elements.fxExpectedEndRate.textContent = formatTL(finalRow.expectedRate);
+      if (elements.fxExpectedCostTl) elements.fxExpectedCostTl.textContent = formatTL(finalRow.expectedUsdCostTl);
+
+      const breakevenIncreasePct = currentRate > 0 ? ((finalRow.breakevenRate - currentRate) / currentRate) * 100 : 0;
+      if (elements.fxBreakevenRate) elements.fxBreakevenRate.textContent = '1$ = ' + formatTL(finalRow.breakevenRate);
+      if (elements.fxBreakevenPct) {
+        elements.fxBreakevenPct.textContent =
+          'Dolar %' +
+          breakevenIncreasePct.toFixed(1) +
+          ' artıp ' +
+          formatTL(finalRow.breakevenRate) +
+          ' olana kadar TL faizde kalmak kârlıdır.';
+      }
+
+      const totalUsdBuyableAtEnd = finalRow.expectedRate > 0 ? finalRow.tlBal / finalRow.expectedRate : usdAmount;
+      if (elements.fxExtraUsdBought) {
+        elements.fxExtraUsdBought.textContent = formatUSD(totalUsdBuyableAtEnd);
+      }
+
+      if (elements.fxBestDaySummary && bestDayObj) {
+        if (bestDayObj.netTlDiff > 0) {
+          elements.fxBestDaySummary.textContent =
+            'En yüksek avantaj ' +
+            bestDayObj.dateFormatted +
+            ' (' +
+            bestDayObj.day +
+            '. gün) tarihinde: +' +
+            formatTL(bestDayObj.netTlDiff) +
+            ' (' +
+            formatUSD(bestDayObj.netUsdDiff) +
+            ') net kâr.';
+        } else {
+          elements.fxBestDaySummary.textContent =
+            'Seçilen tarih aralığında kur artışı faizden yüksek; en avantajlı hamle 0. gün (Bugün) yatırmaktır.';
+        }
+      }
+
+      // 3 Olasılık Senaryosu Kartları
+      if (elements.fxScenarioLowRate) elements.fxScenarioLowRate.textContent = '1$ = ' + formatTL(lowRate);
+      if (elements.fxScenarioLowNet) {
+        elements.fxScenarioLowNet.textContent = (lowNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(lowNetTl));
+        elements.fxScenarioLowNet.className = 'font-mono font-bold text-sm ' + (lowNetTl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      }
+
+      if (elements.fxScenarioBaseRate) elements.fxScenarioBaseRate.textContent = '1$ = ' + formatTL(baseRate);
+      if (elements.fxScenarioBaseNet) {
+        elements.fxScenarioBaseNet.textContent = (baseNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(baseNetTl));
+        elements.fxScenarioBaseNet.className = 'font-mono font-bold text-sm ' + (baseNetTl >= 0 ? 'text-emerald-400' : 'text-amber-400');
+      }
+
+      if (elements.fxScenarioHighRate) elements.fxScenarioHighRate.textContent = '1$ = ' + formatTL(highRate);
+      if (elements.fxScenarioHighNet) {
+        elements.fxScenarioHighNet.textContent = (highNetTl >= 0 ? '+' : '-') + formatTL(Math.abs(highNetTl));
+        elements.fxScenarioHighNet.className = 'font-mono font-bold text-sm ' + (highNetTl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      }
+
+      renderFxDecisionTable(dailyRows, initialTlRequired, currentRate);
+      persistState();
+    }
+
+    function renderFxDecisionTable(rows, initialTl, currentRate) {
+      if (!elements.fxTableBody) return;
+      let html = '';
+
+      // 0. Gün (Bugün / Şimdi Yatırım) satırı
+      html +=
+        '<tr class="bg-dark-950/90 border-b border-slate-800 text-slate-300">' +
+        '<td class="py-2.5 px-3 font-bold text-amber-400 whitespace-nowrap">Bugün (Şimdi)</td>' +
+        '<td class="py-2.5 px-3 text-right font-semibold">' +
+        formatTL(initialTl) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right">' +
+        formatTL(currentRate) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right text-slate-400">' +
+        formatTL(currentRate) +
+        '</td>' +
+        '<td class="py-2.5 px-3 text-right font-bold text-slate-400">₺0,00 ($0,00)</td>' +
+        '<td class="py-2.5 px-3 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-bold">Referans</span></td>' +
+        '</tr>';
+
+      // Çok uzun tarih aralıklarında tabloyu akıcı tutmak için örnekleme veya tam liste
+      const total = rows.length;
+      const step = total > 90 ? Math.ceil(total / 45) : 1;
+
+      for (let i = 0; i < total; i++) {
+        const isMilestone =
+          i === total - 1 ||
+          (i + 1) % step === 0 ||
+          rows[i].day === 7 ||
+          rows[i].day === 15 ||
+          rows[i].day === 30 ||
+          rows[i].day === 60 ||
+          rows[i].day === 90;
+        if (!isMilestone) continue;
+
+        const r = rows[i];
+        const isPositive = r.netTlDiff >= 0;
+        const isLast = i === total - 1;
+
+        let rowClass = 'hover:bg-dark-850 transition-colors';
+        if (isLast) {
+          rowClass += isPositive ? ' highlight-row-fx-win' : ' highlight-row-fx-now';
+        }
+
+        const diffText =
+          (isPositive ? '+' : '-') +
+          formatTL(Math.abs(r.netTlDiff)) +
+          ' <span class="text-[10px] opacity-80">(' +
+          (r.netUsdDiff >= 0 ? '+' : '-') +
+          formatUSD(Math.abs(r.netUsdDiff)) +
+          ')</span>';
+
+        const probBadgeClass =
+          r.winProbInterest >= 52
+            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+            : r.winProbInterest <= 48
+            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+            : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+
+        html +=
+          '<tr class="' +
+          rowClass +
+          '">' +
+          '<td class="py-2.5 px-3 font-bold text-white whitespace-nowrap">' +
+          r.day +
+          '. Gün <span class="text-[10px] text-slate-400 font-normal">(' +
+          r.dateFormatted +
+          ')</span></td>' +
+          '<td class="py-2.5 px-3 text-right text-brand-400 font-semibold">' +
+          formatTL(r.tlBal) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-200">' +
+          formatTL(r.expectedRate) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-cyan-300">' +
+          formatTL(r.breakevenRate) +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right font-bold ' +
+          (isPositive ? 'text-emerald-400' : 'text-amber-400') +
+          '">' +
+          diffText +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+          '<span class="px-2 py-0.5 rounded border text-[10px] font-bold ' +
+          probBadgeClass +
+          '">%' +
+          r.winProbInterest.toFixed(1) +
+          ' Faiz</span>' +
+          '</td>' +
+          '</tr>';
+      }
+
+      elements.fxTableBody.innerHTML = html;
+    }
+
     // --- LOAD & PERSIST STATE ---
     function loadPersistedState() {
-      let raw = getCookie(STORAGE_KEY);
+      let raw = getCookie(STORAGE_KEY) || getCookie(LEGACY_STORAGE_KEY);
       if (!raw) {
         try {
-          raw = localStorage.getItem(STORAGE_KEY);
+          raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
         } catch (e) {}
       }
       if (!raw) return false;
@@ -600,7 +1134,8 @@
         if (!data || typeof data !== 'object') return false;
 
         if (data.refPrincipal !== undefined && !isNaN(data.refPrincipal)) state.refPrincipal = Number(data.refPrincipal);
-        if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest)) state.refDailyInterest = Number(data.refDailyInterest);
+        if (data.refDailyInterest !== undefined && !isNaN(data.refDailyInterest))
+          state.refDailyInterest = Number(data.refDailyInterest);
         if (data.activeDailyRate !== undefined && !isNaN(data.activeDailyRate) && Number(data.activeDailyRate) > 0) {
           state.activeDailyRate = Number(data.activeDailyRate);
         }
@@ -623,7 +1158,21 @@
         if (data.installmentMode === 'compound' || data.installmentMode === 'simple') {
           state.installmentMode = data.installmentMode;
         }
-        if (data.activeTab === 'interest' || data.activeTab === 'installment') {
+
+        // FX Decision properties
+        if (data.fxUsdAmount !== undefined && !isNaN(data.fxUsdAmount)) state.fxUsdAmount = Number(data.fxUsdAmount);
+        if (data.fxCurrentRate !== undefined && !isNaN(data.fxCurrentRate))
+          state.fxCurrentRate = Number(data.fxCurrentRate);
+        if (data.fxStartDate) state.fxStartDate = data.fxStartDate;
+        if (data.fxEndDate) state.fxEndDate = data.fxEndDate;
+        if (data.fxMonthlyGrowth !== undefined && !isNaN(data.fxMonthlyGrowth))
+          state.fxMonthlyGrowth = Number(data.fxMonthlyGrowth);
+        if (data.fxVolatility !== undefined && !isNaN(data.fxVolatility))
+          state.fxVolatility = Number(data.fxVolatility);
+        if (data.fxInterestMode === 'compound' || data.fxInterestMode === 'simple')
+          state.fxInterestMode = data.fxInterestMode;
+
+        if (data.activeTab === 'interest' || data.activeTab === 'installment' || data.activeTab === 'fxdecision') {
           state.activeTab = data.activeTab;
         }
 
@@ -633,6 +1182,13 @@
         elements.currentPrincipalInput.value = state.currentPrincipal;
         elements.installmentTotalInput.value = state.installmentTotal;
         elements.installmentCountInput.value = state.installmentCount;
+
+        if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.value = state.fxUsdAmount;
+        if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.value = state.fxCurrentRate;
+        if (elements.fxStartDateInput) elements.fxStartDateInput.value = state.fxStartDate;
+        if (elements.fxEndDateInput) elements.fxEndDateInput.value = state.fxEndDate;
+        if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = state.fxMonthlyGrowth;
+        if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = state.fxVolatility;
 
         syncRateDisplays();
 
@@ -665,6 +1221,14 @@
       }
     }
 
+    // Set default dates in DOM if empty
+    if (elements.fxStartDateInput && !elements.fxStartDateInput.value) {
+      elements.fxStartDateInput.value = state.fxStartDate;
+    }
+    if (elements.fxEndDateInput && !elements.fxEndDateInput.value) {
+      elements.fxEndDateInput.value = state.fxEndDate;
+    }
+
     // --- EVENT LISTENERS ---
     ['input', 'keyup', 'change', 'paste'].forEach(evtName => {
       elements.refPrincipalInput.addEventListener(evtName, updateRatePreview);
@@ -684,6 +1248,13 @@
         });
         calculateInstallment();
       });
+
+      if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxStartDateInput) elements.fxStartDateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxEndDateInput) elements.fxEndDateInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.addEventListener(evtName, calculateFxDecision);
+      if (elements.fxVolatilityInput) elements.fxVolatilityInput.addEventListener(evtName, calculateFxDecision);
     });
 
     // Save Rate Button
@@ -711,6 +1282,7 @@
 
         calculateInterest();
         calculateInstallment();
+        calculateFxDecision();
         showToast('✓ Faiz oranı %' + formatRate(calculatedRate) + ' olarak kaydedildi!');
       });
     }
@@ -730,6 +1302,60 @@
         const amt = parseFloat(chip.dataset.amt);
         elements.installmentTotalInput.value = amt;
         calculateInstallment();
+      });
+    });
+
+    // Quick Chips for FX USD Amount
+    elements.fxUsdChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const amt = parseFloat(chip.dataset.usd);
+        if (elements.fxUsdAmountInput) {
+          elements.fxUsdAmountInput.value = amt;
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Date Range Chips for FX Decision
+    elements.fxDateRangeChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const days = parseInt(chip.dataset.days, 10);
+        if (!isNaN(days) && elements.fxStartDateInput && elements.fxEndDateInput) {
+          const startISO = elements.fxStartDateInput.value || getTodayISO();
+          elements.fxStartDateInput.value = startISO;
+          elements.fxEndDateInput.value = addDaysToISO(startISO, days);
+
+          elements.fxDateRangeChips.forEach(c => {
+            c.classList.remove('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+            c.classList.add('bg-dark-850', 'border-slate-800', 'text-slate-300');
+          });
+          chip.classList.add('bg-brand-600', 'border-brand-500', 'text-white', 'shadow');
+          chip.classList.remove('bg-dark-850', 'border-slate-800', 'text-slate-300');
+
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Growth Chips for FX Decision
+    elements.fxGrowthChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = parseFloat(chip.dataset.growth);
+        if (!isNaN(val) && elements.fxMonthlyGrowthInput) {
+          elements.fxMonthlyGrowthInput.value = val;
+          calculateFxDecision();
+        }
+      });
+    });
+
+    // Quick Volatility Chips for FX Decision
+    elements.fxVolChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = parseFloat(chip.dataset.vol);
+        if (!isNaN(val) && elements.fxVolatilityInput) {
+          elements.fxVolatilityInput.value = val;
+          calculateFxDecision();
+        }
       });
     });
 
@@ -799,6 +1425,23 @@
       });
     }
 
+    // FX Decision Modes
+    if (elements.fxModeCompoundBtn) {
+      elements.fxModeCompoundBtn.addEventListener('click', () => {
+        state.fxInterestMode = 'compound';
+        updateModeUI();
+        calculateFxDecision();
+      });
+    }
+
+    if (elements.fxModeSimpleBtn) {
+      elements.fxModeSimpleBtn.addEventListener('click', () => {
+        state.fxInterestMode = 'simple';
+        updateModeUI();
+        calculateFxDecision();
+      });
+    }
+
     // Toggle Tables
     if (elements.toggleTableBtn && elements.tableContainer) {
       elements.toggleTableBtn.addEventListener('click', () => {
@@ -818,6 +1461,15 @@
       });
     }
 
+    if (elements.toggleFxTableBtn && elements.fxTableContainer) {
+      elements.toggleFxTableBtn.addEventListener('click', () => {
+        const isHidden = elements.fxTableContainer.classList.toggle('hidden');
+        if (elements.fxTableChevron) {
+          elements.fxTableChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      });
+    }
+
     // Currency buttons
     elements.currencyButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -833,6 +1485,7 @@
 
         calculateInterest();
         calculateInstallment();
+        calculateFxDecision();
       });
     });
 
@@ -840,9 +1493,14 @@
     if (elements.resetAllBtn) {
       elements.resetAllBtn.addEventListener('click', () => {
         eraseCookie(STORAGE_KEY);
+        eraseCookie(LEGACY_STORAGE_KEY);
         try {
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
         } catch (e) {}
+
+        const freshToday = getTodayISO();
+        const freshEnd = addDaysToISO(freshToday, 30);
 
         state.refPrincipal = 10000;
         state.refDailyInterest = 150;
@@ -854,6 +1512,13 @@
         state.installmentCount = 6;
         state.installmentFirstPayment = 'delayed';
         state.installmentMode = 'compound';
+        state.fxUsdAmount = 1000;
+        state.fxCurrentRate = 34.5;
+        state.fxStartDate = freshToday;
+        state.fxEndDate = freshEnd;
+        state.fxMonthlyGrowth = 2.5;
+        state.fxVolatility = 3.5;
+        state.fxInterestMode = 'compound';
         state.activeTab = 'interest';
 
         elements.refPrincipalInput.value = 10000;
@@ -861,6 +1526,13 @@
         elements.currentPrincipalInput.value = 10000;
         elements.installmentTotalInput.value = 30000;
         elements.installmentCountInput.value = 6;
+
+        if (elements.fxUsdAmountInput) elements.fxUsdAmountInput.value = 1000;
+        if (elements.fxCurrentRateInput) elements.fxCurrentRateInput.value = 34.5;
+        if (elements.fxStartDateInput) elements.fxStartDateInput.value = freshToday;
+        if (elements.fxEndDateInput) elements.fxEndDateInput.value = freshEnd;
+        if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = 2.5;
+        if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = 3.5;
 
         elements.instCountBtns.forEach(b => {
           if (parseInt(b.dataset.months, 10) === 6) {
@@ -890,6 +1562,7 @@
         switchTab('interest');
         calculateInterest();
         calculateInstallment();
+        calculateFxDecision();
         showToast('Tüm değerler ve çerezler sıfırlandı.');
       });
     }
@@ -902,6 +1575,7 @@
     switchTab(state.activeTab || 'interest');
     calculateInterest();
     calculateInstallment();
+    calculateFxDecision();
   }
 
   if (document.getElementById('refPrincipalInput')) {
