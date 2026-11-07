@@ -1301,7 +1301,7 @@
     activeTab: 'interest' // 'interest' | 'installment' | 'fxdecision'
   };
 
-  function parseNumber(val) {
+  function parseNumber(val, allowThousandDot = false) {
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
     if (!val) return 0;
     let str = String(val).trim().replace(/\s+/g, '');
@@ -1309,7 +1309,7 @@
       str = str.replace(/\./g, '').replace(',', '.');
     } else if (str.includes(',')) {
       str = str.replace(',', '.');
-    } else if (str.includes('.')) {
+    } else if (allowThousandDot && str.includes('.')) {
       const parts = str.split('.');
       if (parts.length === 2 && parts[1].length === 3 && parseFloat(parts[0]) >= 1) {
         str = parts[0] + parts[1];
@@ -1625,8 +1625,8 @@
     }
 
     function updateRatePreview() {
-      const p = parseNumber(elements.refPrincipalInput.value);
-      const r = parseNumber(elements.refDailyInterestInput.value);
+      const p = parseNumber(elements.refPrincipalInput.value, true);
+      const r = parseNumber(elements.refDailyInterestInput.value, true);
       if (p > 0) {
         const calcRate = (r / p) * 100;
         if (elements.calcRatePreview) elements.calcRatePreview.textContent = '%' + calcRate.toFixed(4);
@@ -1699,7 +1699,7 @@
 
     // --- CALCULATION 1: INTEREST ONLY ---
     function calculateInterest() {
-      const principal = parseNumber(elements.currentPrincipalInput.value);
+      const principal = parseNumber(elements.currentPrincipalInput.value, true);
       state.currentPrincipal = principal;
 
       let rate = state.activeDailyRate;
@@ -1799,7 +1799,7 @@
 
     // --- CALCULATION 2: INSTALLMENT ARBITRAGE ---
     function calculateInstallment() {
-      const total = parseNumber(elements.installmentTotalInput.value);
+      const total = parseNumber(elements.installmentTotalInput.value, true);
       state.installmentTotal = total;
 
       let months = parseInt(elements.installmentCountInput.value, 10);
@@ -1989,10 +1989,10 @@
     function calculateFxDecision() {
       if (!elements.fxUsdAmountInput) return;
 
-      const usdAmount = Math.max(0, parseNumber(elements.fxUsdAmountInput.value));
-      const currentRate = Math.max(0.0001, parseNumber(elements.fxCurrentRateInput.value));
-      const monthlyGrowthPct = parseNumber(elements.fxMonthlyGrowthInput.value);
-      const monthlyVolPct = Math.max(0.1, parseNumber(elements.fxVolatilityInput.value));
+      const usdAmount = Math.max(0, parseNumber(elements.fxUsdAmountInput.value, true));
+      const currentRate = Math.max(0.0001, parseNumber(elements.fxCurrentRateInput.value, false));
+      const monthlyGrowthPct = parseNumber(elements.fxMonthlyGrowthInput.value, false);
+      const monthlyVolPct = Math.max(0.1, parseNumber(elements.fxVolatilityInput.value, false));
 
       state.fxUsdAmount = usdAmount;
       state.fxCurrentRate = currentRate;
@@ -2394,8 +2394,11 @@
 
         // FX Decision properties
         if (data.fxUsdAmount !== undefined && !isNaN(data.fxUsdAmount)) state.fxUsdAmount = Number(data.fxUsdAmount);
-        if (data.fxCurrentRate !== undefined && !isNaN(data.fxCurrentRate))
-          state.fxCurrentRate = Number(data.fxCurrentRate);
+        if (data.fxCurrentRate !== undefined && !isNaN(data.fxCurrentRate)) {
+          let r = Number(data.fxCurrentRate);
+          if (r > 1000) r = Number((r / 1000).toFixed(2));
+          state.fxCurrentRate = r;
+        }
         if (data.fxStartDate) state.fxStartDate = data.fxStartDate;
         if (data.fxEndDate) state.fxEndDate = data.fxEndDate;
         if (data.fxMonthlyGrowth !== undefined && !isNaN(data.fxMonthlyGrowth))
@@ -2493,8 +2496,8 @@
     // Save Rate Button
     if (elements.saveRateBtn) {
       elements.saveRateBtn.addEventListener('click', () => {
-        const p = parseNumber(elements.refPrincipalInput.value);
-        const r = parseNumber(elements.refDailyInterestInput.value);
+        const p = parseNumber(elements.refPrincipalInput.value, true);
+        const r = parseNumber(elements.refDailyInterestInput.value, true);
 
         if (p <= 0) {
           showToast('Lütfen geçerli bir anapara girin.');
@@ -2731,10 +2734,10 @@
       }
 
       if (liveRate && liveRate > 0) {
-        const formattedLive = Number(liveRate.toFixed(4));
+        const formattedLive = Number(liveRate.toFixed(2));
         state.fxCurrentRate = formattedLive;
         if (elements.fxCurrentRateInput) {
-          elements.fxCurrentRateInput.value = formattedLive;
+          elements.fxCurrentRateInput.value = formattedLive.toFixed(2);
         }
         if (elements.fxLiveStatusText) {
           elements.fxLiveStatusText.textContent = 'Canlı: ₺' + formattedLive.toFixed(2) + ' (' + rateSource + ')';
