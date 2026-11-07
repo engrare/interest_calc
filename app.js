@@ -231,6 +231,13 @@
       fxUsdAmountInput: document.getElementById('fxUsdAmountInput'),
       fxUsdChips: document.querySelectorAll('.fx-usd-chip'),
       fxCurrentRateInput: document.getElementById('fxCurrentRateInput'),
+      fxLiveRateStatus: document.getElementById('fxLiveRateStatus'),
+      fxLiveDot: document.getElementById('fxLiveDot'),
+      fxLiveStatusText: document.getElementById('fxLiveStatusText'),
+      fetchLiveFxBtn: document.getElementById('fetchLiveFxBtn'),
+      fxRefreshIcon: document.getElementById('fxRefreshIcon'),
+      fxHistoricalSummaryText: document.getElementById('fxHistoricalSummaryText'),
+      applyHistoricalStatsBtn: document.getElementById('applyHistoricalStatsBtn'),
       fxRequiredTlDisplay: document.getElementById('fxRequiredTlDisplay'),
       fxStartDateInput: document.getElementById('fxStartDateInput'),
       fxEndDateInput: document.getElementById('fxEndDateInput'),
@@ -1442,6 +1449,183 @@
       });
     }
 
+    // --- CANLI DOLAR KURU & SON 90 GÜNLÜK GERÇEK ARTIŞ/VOLATİLİTE ÇEKME (FRONTEND ONLY) ---
+    let fetchedHistoricalGrowth = null;
+    let fetchedHistoricalVol = null;
+
+    async function fetchLiveExchangeRate(applyAll = false, silent = false) {
+      if (elements.fxRefreshIcon) {
+        elements.fxRefreshIcon.classList.add('animate-spin');
+      }
+      if (elements.fxLiveStatusText) {
+        elements.fxLiveStatusText.textContent = 'Kur çekiliyor...';
+      }
+
+      let liveRate = null;
+      let rateSource = '';
+
+      // 1. Kaynak: Frankfurter (ECB Merkez Bankası Verisi - CORS açık)
+      try {
+        const res = await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=TRY', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.rates && data.rates.TRY) {
+            liveRate = Number(data.rates.TRY);
+            rateSource = 'ECB/Frankfurter';
+          }
+        }
+      } catch (e) {}
+
+      // 2. Yedek Kaynak: Open Exchange Rates API (CORS açık)
+      if (!liveRate) {
+        try {
+          const res = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.rates && data.rates.TRY) {
+              liveRate = Number(data.rates.TRY);
+              rateSource = 'OpenER';
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 3. Yedek Kaynak: jsDelivr Currency CDN (CORS açık)
+      if (!liveRate) {
+        try {
+          const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.usd && data.usd.try) {
+              liveRate = Number(data.usd.try);
+              rateSource = 'CDN';
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (liveRate && liveRate > 0) {
+        const formattedLive = Number(liveRate.toFixed(4));
+        state.fxCurrentRate = formattedLive;
+        if (elements.fxCurrentRateInput) {
+          elements.fxCurrentRateInput.value = formattedLive;
+        }
+        if (elements.fxLiveStatusText) {
+          elements.fxLiveStatusText.textContent = 'Canlı: ₺' + formattedLive.toFixed(2) + ' (' + rateSource + ')';
+        }
+        if (!silent) {
+          showToast('✓ Güncel Dolar kuru internetten çekildi: 1$ = ₺' + formattedLive.toFixed(2));
+        }
+      } else {
+        if (elements.fxLiveStatusText) {
+          elements.fxLiveStatusText.textContent = 'Manuel Kur Modu';
+        }
+        if (!silent) {
+          showToast('Canlı kur servisine ulaşılamadı, manuel değer kullanılıyor.');
+        }
+      }
+
+      // Son 90 günlük tarihsel USD/TRY verisinden gerçek aylık ortalama artış ve volatilite hesabı
+      try {
+        const endISO = getTodayISO();
+        const start90ISO = addDaysToISO(endISO, -90);
+        const histUrl = 'https://api.frankfurter.dev/v1/' + start90ISO + '..' + endISO + '?base=USD&symbols=TRY';
+        const hRes = await fetch(histUrl);
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          const dates = Object.keys(hData.rates || {}).sort();
+          if (dates.length >= 10) {
+            const firstRate = Number(hData.rates[dates[0]].TRY);
+            const lastRate = Number(hData.rates[dates[dates.length - 1]].TRY);
+            const dFirst = new Date(dates[0] + 'T00:00:00');
+            const dLast = new Date(dates[dates.length - 1] + 'T00:00:00');
+            const calendarDays = Math.max(1, Math.round((dLast - dFirst) / (1000 * 60 * 60 * 24)));
+
+            // Günlük bileşik artıştan 30 günlük (aylık) ortalama artış yüzdesi
+            const totalRatio = lastRate / firstRate;
+            const monthlyGrowthCalc = (Math.pow(totalRatio, 30 / calendarDays) - 1) * 100;
+
+            // Günlük log-getiri standart sapmasından aylık volatilite hesabı
+            const logReturns = [];
+            for (let i = 1; i < dates.length; i++) {
+              const rPrev = Number(hData.rates[dates[i - 1]].TRY);
+              const rCurr = Number(hData.rates[dates[i]].TRY);
+              if (rPrev > 0 && rCurr > 0) {
+                logReturns.push(Math.log(rCurr / rPrev));
+              }
+            }
+            if (logReturns.length > 2) {
+              const mean = logReturns.reduce((a, b) => a + b, 0) / logReturns.length;
+              const variance = logReturns.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (logReturns.length - 1);
+              const dailyStd = Math.sqrt(variance);
+              // İş gününden aylık (~22 işlem günü) volatiliteye ölçekleme
+              const monthlyVolCalc = Math.max(0.5, dailyStd * Math.sqrt(22) * 100);
+
+              fetchedHistoricalGrowth = Number(monthlyGrowthCalc.toFixed(2));
+              fetchedHistoricalVol = Number(monthlyVolCalc.toFixed(2));
+
+              if (elements.fxHistoricalSummaryText) {
+                const signStr = fetchedHistoricalGrowth >= 0 ? '+' : '';
+                elements.fxHistoricalSummaryText.innerHTML =
+                  'Son 90 gün gerçek piyasa verisi: Aylık ort. değişim <strong class="text-cyan-300 font-mono">' +
+                  signStr +
+                  '%' +
+                  fetchedHistoricalGrowth +
+                  '</strong>, aylık oynaklık <strong class="text-cyan-300 font-mono">±%' +
+                  fetchedHistoricalVol +
+                  '</strong> (' +
+                  formatTL(firstRate) +
+                  ' → ' +
+                  formatTL(lastRate) +
+                  ')';
+              }
+              if (elements.applyHistoricalStatsBtn) {
+                elements.applyHistoricalStatsBtn.classList.remove('hidden');
+              }
+
+              if (applyAll) {
+                state.fxMonthlyGrowth = fetchedHistoricalGrowth;
+                state.fxVolatility = fetchedHistoricalVol;
+                if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = fetchedHistoricalGrowth;
+                if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = fetchedHistoricalVol;
+              }
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (elements.fxRefreshIcon) {
+        elements.fxRefreshIcon.classList.remove('animate-spin');
+      }
+
+      calculateFxDecision();
+    }
+
+    if (elements.fetchLiveFxBtn) {
+      elements.fetchLiveFxBtn.addEventListener('click', () => {
+        fetchLiveExchangeRate(false, false);
+      });
+    }
+
+    if (elements.applyHistoricalStatsBtn) {
+      elements.applyHistoricalStatsBtn.addEventListener('click', () => {
+        if (fetchedHistoricalGrowth !== null && fetchedHistoricalVol !== null) {
+          state.fxMonthlyGrowth = fetchedHistoricalGrowth;
+          state.fxVolatility = fetchedHistoricalVol;
+          if (elements.fxMonthlyGrowthInput) elements.fxMonthlyGrowthInput.value = fetchedHistoricalGrowth;
+          if (elements.fxVolatilityInput) elements.fxVolatilityInput.value = fetchedHistoricalVol;
+          calculateFxDecision();
+          showToast(
+            '✓ Son 90 günlük gerçek dolar artış ortalaması (%' +
+              fetchedHistoricalGrowth +
+              '/ay) ve oynaklık (±%' +
+              fetchedHistoricalVol +
+              ') uygulandı!'
+          );
+        }
+      });
+    }
+
     // Toggle Tables
     if (elements.toggleTableBtn && elements.tableContainer) {
       elements.toggleTableBtn.addEventListener('click', () => {
@@ -1568,7 +1752,7 @@
     }
 
     // Initialize state & calculations
-    loadPersistedState();
+    const hadSavedState = loadPersistedState();
     updateRatePreview();
     syncRateDisplays();
     updateModeUI();
@@ -1576,6 +1760,10 @@
     calculateInterest();
     calculateInstallment();
     calculateFxDecision();
+
+    // Sayfa açılışında internetten canlı dolar kurunu ve son 90 günlük gerçek trendi otomatik çek
+    // Eğer kullanıcının daha önce kaydettiği özel bir artış beklentisi yoksa gerçek 90 günlük ortalamayı da otomatik doldur
+    fetchLiveExchangeRate(!hadSavedState, true);
   }
 
   if (document.getElementById('refPrincipalInput')) {
